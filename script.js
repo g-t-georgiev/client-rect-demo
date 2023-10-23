@@ -22,12 +22,16 @@ function initializeBox() {
 }
 
 function onInputHandler(ev) {
-    const value = ev.currentTarget.value;
+    let value = ev.currentTarget.value.trim();
 
     if (isNaN(value)) {
-        alert('Only numbers alowed!');
+        alert('Only numbers allowed!');
         ev.currentTarget.value = currentInputValue;
         return;
+    }
+
+    if (value.length === 0) {
+        value = currentInputValue;
     }
 
     rotatedContainer.style.setProperty('--rotation', `${value}deg`);
