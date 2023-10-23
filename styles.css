@@ -1,0 +1,114 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    font-family: 'Courier New', Courier, monospace;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 3rem;
+    min-height: 100vh;
+}
+
+/* ---------------------------------------- */
+/* Rotated boxes */
+
+.rotator {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    translate: -50%;
+    padding: 15px 12px;
+    border: 2px solid black;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.rotator label {
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.rotation-input-wrapper {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    width: 100%;
+    font-size: 0;
+}
+
+.decr-btn, 
+.incr-btn {
+    border: 2px solid rgba(0 0 0 / 1);
+    background-color: rgba(255 255 255 / 1);
+    cursor: pointer;
+    user-select: none;
+}
+
+.decr-btn {
+    padding-block: 5px 2.75px;
+    padding-inline: 7px 5px;
+    border-radius: 60% 0% 0% 60%;
+}
+
+.incr-btn {
+    padding-block: 3.75px;
+    padding-inline: 5px 7px;
+    border-radius: 0% 60% 60% 0%;
+}
+
+.decr-sign,
+.incr-sign {
+    font-size: 1.1725rem;
+    font-weight: 700;
+    color: rgba(0 0 0 / 1);
+}
+
+.rotation-input {
+    width: 20%;
+    padding: 5px 3px;
+    border: 2px solid rgba(0 0 0 / 1);
+    border-left: none;
+    border-right: none;
+    color: rgba(0 0 0 / 1);
+    background-color: rgba(255 255 255 / 1);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.rotation-input:focus {
+    background-color: lightskyblue;
+    outline: transparent;
+}
+
+.box {
+    width: 200px;
+    height: 200px;
+    border: 2px solid red;
+    padding: 5px 7px;
+    color: white;
+    font-size: 120%;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    flex-direction: column;
+}
+
+.rotated {
+    color: red;
+    transform: rotateZ(var(--rotation, 45deg));
+    transform-origin: center;
+}
+
+.non-rotated {
+    background-color: red;
+}
