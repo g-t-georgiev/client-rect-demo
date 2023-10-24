@@ -1,8 +1,10 @@
 const rotatorBoxElem = document.querySelector('.rotator');
+const errMsgElem = document.querySelector('.err-msg');
 const rotationInputElem = rotatorBoxElem.querySelector('[type="text"]');
 const decrBtn = rotatorBoxElem.querySelector('.decr-btn');
 const incrBtn = rotatorBoxElem.querySelector('.incr-btn');
-const rotatedContainer = document.querySelector('.rotated');
+const rotatedContainer = document.querySelector('.rotated-box-1');
+const rotatedContainer2 = document.querySelector('.rotated-box-2');
 const nonrotatedContainer = document.querySelector('.non-rotated');
 
 let currentInputValue;
@@ -10,8 +12,10 @@ let currentInputValue;
 initializeBox();
 
 function initializeBox() {
-    const rotationProp = getCSSProperty('transform', getStyleMap(rotatedContainer));
-    const rotationValue = rotationProp[0].angle.value;
+    let rotationProp = getCSSProperty('transform', getStyleMap(rotatedContainer));
+    console.log('Initial rotation property', rotationProp);
+    let rotationValue = rotationProp[0]?.angle.value ?? 0;
+    console.log('Initial rotation property value', rotationValue);
     rotationInputElem.value = rotationValue;
     updateBoxes(rotationValue);
     currentInputValue = rotationValue;
@@ -19,35 +23,73 @@ function initializeBox() {
     decrBtn.addEventListener('click', decreaseRotationHandler);
     incrBtn.addEventListener('click', increateRotationHandler);
     rotationInputElem.addEventListener('input', onInputHandler);
+    rotationInputElem.addEventListener('change', onChangeHandler);
 }
 
 function onInputHandler(ev) {
     let value = ev.currentTarget.value.trim();
+    let isInvalid = isNaN(value);
 
-    if (isNaN(value)) {
-        alert('Only numbers allowed!');
-        ev.currentTarget.value = currentInputValue;
+    if (value.length === 0) value = 0;
+
+    decrBtn.toggleAttribute('disabled', isInvalid);
+    incrBtn.toggleAttribute('disabled', isInvalid);
+
+    if (isInvalid) {
+        errMsgElem.textContent = 'Only numbers allowed!';
         return;
     }
 
-    if (value.length === 0) {
-        value = currentInputValue;
-    }
+    value = Number(value);
+    errMsgElem.textContent = '';
 
     rotatedContainer.style.setProperty('--rotation', `${value}deg`);
+    rotatedContainer2.style.setProperty('--rotation', `${value}deg`);
     updateBoxes(value);
     currentInputValue = value;
 }
 
+function onChangeHandler(ev) {
+    let value = ev.currentTarget.value.trim();
+    let isInvalid = isNaN(value);
+
+    if (value.length === 0) ev.currentTarget.value = 0;
+
+    decrBtn.toggleAttribute('disabled', isInvalid);
+    incrBtn.toggleAttribute('disabled', isInvalid);
+
+    if (isInvalid) {
+        ev.currentTarget.focus({ focusVisible: true });
+        errMsgElem.textContent = 'Only numbers allowed!';
+        return;
+    }
+
+    errMsgElem.textContent = '';
+}
+
 function increateRotationHandler(ev) {
-    rotationInputElem.value++;
+    let value = Number(rotationInputElem.value.trim());
+
+    if (isNaN(value)) return;
+
+    value++;
+
+    rotationInputElem.value = value;
     rotatedContainer.style.setProperty('--rotation', `${rotationInputElem.value}deg`);
+    rotatedContainer2.style.setProperty('--rotation', `${rotationInputElem.value}deg`);
     updateBoxes(rotationInputElem.value);
 }
 
 function decreaseRotationHandler(ev) {
-    rotationInputElem.value--;
+    let value = Number(rotationInputElem.value.trim());
+
+    if (isNaN(value)) return;
+
+    value--;
+
+    rotationInputElem.value = value;
     rotatedContainer.style.setProperty('--rotation', `${rotationInputElem.value}deg`);
+    rotatedContainer2.style.setProperty('--rotation', `${rotationInputElem.value}deg`);
     updateBoxes(rotationInputElem.value);
 }
 
@@ -82,7 +124,7 @@ function updateBoxes(data) {
     rect1Details5.textContent = `\nWidth: ${rotatedContainerRect.width.toFixed(2)}`;
     rect1Details6.textContent = `\nHeight: ${rotatedContainerRect.height.toFixed(2)}`;
     rotatedContainer.append(rect1Details0, rect1Details1, rect1Details2, rect1Details3, rect1Details4, rect1Details5, rect1Details6);
-    
+
     const nonrotatedContainerRect = getBoundingClientRect(nonrotatedContainer);
     nonrotatedContainer.innerHTML = '';
     const rect2Details0 = document.createElement('div');
@@ -102,4 +144,38 @@ function updateBoxes(data) {
     nonrotatedContainer.append(rect2Details0, rect2Details1, rect2Details2, rect2Details3, rect2Details4, rect2Details5, rect2Details6);
     console.log('Rotated container rect', rotatedContainerRect);
     console.log('Non-rotated container rect', nonrotatedContainerRect);
+
+    const rotatedContainer2Rect = getBoundingClientRect(rotatedContainer2);
+    const normalizedRect = normalizeClientRect(rotatedContainer2Rect, rotationValue);
+    console.log('Normalized container rect', normalizedRect);
+    rotatedContainer2.innerHTML = '';
+    const rect3Details0 = document.createElement('div');
+    const rect3Details1 = document.createElement('div');
+    const rect3Details2 = document.createElement('div');
+    const rect3Details3 = document.createElement('div');
+    const rect3Details4 = document.createElement('div');
+    const rect3Details5 = document.createElement('div');
+    const rect3Details6 = document.createElement('div');
+    rect3Details0.textContent = `Rotation: ${rotationValue}deg`;
+    rect3Details1.textContent = `\nTop: ${rotatedContainer2Rect.top.toFixed(2)}`;
+    rect3Details2.textContent = `\nLeft: ${rotatedContainer2Rect.left.toFixed(2)}`;
+    rect3Details3.textContent = `\nRight: ${rotatedContainer2Rect.right.toFixed(2)}`;
+    rect3Details4.textContent = `\nBottom: ${rotatedContainer2Rect.bottom.toFixed(2)}`;
+    rect3Details5.textContent = `\nWidth: ${rotatedContainer2Rect.width.toFixed(2)}`;
+    rect3Details6.textContent = `\nHeight: ${rotatedContainer2Rect.height.toFixed(2)}`;
+    rotatedContainer2.append(rect3Details0, rect3Details1, rect3Details2, rect3Details3, rect3Details4, rect3Details5, rect3Details6);
+}
+
+/**
+ * Takes a DOMRect of an element, to which a rotational 
+ * transformation was applied and the angle of the rotation applied, 
+ * calculating and returning normalized client rect values.
+ * @param {DOMRect} clientRect 
+ * @param {number} rotationAngle 
+ */
+function normalizeClientRect(rect, rotationAngle) {
+    // Convert the rotation angle to radians
+    const radians = rotationAngle * (Math.PI / 180);
+
+    return new DOMRect(rect.x, rect.y, rect.width, rect.height);
 }
