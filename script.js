@@ -72,12 +72,16 @@ function updateBoxes(data) {
     const rect1Details2 = document.createElement('div');
     const rect1Details3 = document.createElement('div');
     const rect1Details4 = document.createElement('div');
+    const rect1Details5 = document.createElement('div');
+    const rect1Details6 = document.createElement('div');
     rect1Details0.textContent = `Rotation: ${rotationValue}deg`;
-    rect1Details1.textContent = `\nTop: ${rotatedContainerRect.left.toFixed(2)}`;
+    rect1Details1.textContent = `\nTop: ${rotatedContainerRect.top.toFixed(2)}`;
     rect1Details2.textContent = `\nLeft: ${rotatedContainerRect.left.toFixed(2)}`;
-    rect1Details3.textContent = `\nRight: ${rotatedContainerRect.left.toFixed(2)}`;
-    rect1Details4.textContent = `\nBottom: ${rotatedContainerRect.left.toFixed(2)}`;
-    rotatedContainer.append(rect1Details0, rect1Details1, rect1Details2, rect1Details3, rect1Details4);
+    rect1Details3.textContent = `\nRight: ${rotatedContainerRect.right.toFixed(2)}`;
+    rect1Details4.textContent = `\nBottom: ${rotatedContainerRect.bottom.toFixed(2)}`;
+    rect1Details5.textContent = `\nWidth: ${rotatedContainerRect.width.toFixed(2)}`;
+    rect1Details6.textContent = `\nHeight: ${rotatedContainerRect.height.toFixed(2)}`;
+    rotatedContainer.append(rect1Details0, rect1Details1, rect1Details2, rect1Details3, rect1Details4, rect1Details5, rect1Details6);
     
     const nonrotatedContainerRect = getBoundingClientRect(nonrotatedContainer);
     nonrotatedContainer.innerHTML = '';
@@ -86,12 +90,16 @@ function updateBoxes(data) {
     const rect2Details2 = document.createElement('div');
     const rect2Details3 = document.createElement('div');
     const rect2Details4 = document.createElement('div');
+    const rect2Details5 = document.createElement('div');
+    const rect2Details6 = document.createElement('div');
     rect2Details0.textContent = 'Rotation: 0deg';
-    rect2Details1.textContent = `\nTop: ${nonrotatedContainerRect.left.toFixed(2)}`;
+    rect2Details1.textContent = `\nTop: ${nonrotatedContainerRect.top.toFixed(2)}`;
     rect2Details2.textContent = `\nLeft: ${nonrotatedContainerRect.left.toFixed(2)}`;
-    rect2Details3.textContent = `\nRight: ${nonrotatedContainerRect.left.toFixed(2)}`;
-    rect2Details4.textContent = `\nBottom: ${nonrotatedContainerRect.left.toFixed(2)}`;
-    nonrotatedContainer.append(rect2Details0, rect2Details1, rect2Details2, rect2Details3, rect2Details4);
-    // console.log('Rotated container rect', rotatedContainerRect);
-    // console.log('Non-rotated container rect', nonrotatedContainerRect);
+    rect2Details3.textContent = `\nRight: ${nonrotatedContainerRect.right.toFixed(2)}`;
+    rect2Details4.textContent = `\nBottom: ${nonrotatedContainerRect.bottom.toFixed(2)}`;
+    rect2Details5.textContent = `\nWidth: ${nonrotatedContainerRect.width.toFixed(2)}`;
+    rect2Details6.textContent = `\nHeight: ${nonrotatedContainerRect.height.toFixed(2)}`;
+    nonrotatedContainer.append(rect2Details0, rect2Details1, rect2Details2, rect2Details3, rect2Details4, rect2Details5, rect2Details6);
+    console.log('Rotated container rect', rotatedContainerRect);
+    console.log('Non-rotated container rect', nonrotatedContainerRect);
 }
