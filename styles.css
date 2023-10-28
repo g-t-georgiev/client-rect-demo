@@ -15,14 +15,14 @@ body {
     min-height: 100vh;
 }
 
+/* Controls */
 /* ---------------------------------------- */
-/* Rotated boxes */
 
-.rotator {
-    position: absolute;
-    top: 5px;
-    left: 50%;
-    translate: -50%;
+.controls-wrapper {
+    position: fixed;
+    top: 1%;
+    left: 1%;
+    translate: -1% -1%;
     padding: 15px 12px;
     border: 2px solid black;
     display: flex;
@@ -32,12 +32,12 @@ body {
 }
 
 .err-msg {
-    font-size: 1.0625rem;
-    font-weight: 500;
+    font-size: 1.0825rem;
+    font-weight: 600;
     color: red;
 }
 
-.rotator label {
+.controls-wrapper label {
     font-size: 1.20625rem;
     font-weight: 600;
 }
@@ -45,12 +45,15 @@ body {
 .rotation-input-wrapper {
     display: flex;
     justify-content: start;
-    align-items: center;
+    align-items: stretch;
     width: 100%;
     font-size: 0;
 }
 
 .btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     border: 2px solid rgba(0 0 0 / 1);
     background-color: rgba(255 255 255 / 1);
     cursor: pointer;
@@ -62,13 +65,13 @@ body {
 }
 
 .decr-btn {
-    padding-block: 5px 2.75px;
+    padding-block: 5px 2.5px;
     padding-inline: 7px 5px;
     border-radius: 60% 0% 0% 60%;
 }
 
 .incr-btn {
-    padding-block: 3.75px;
+    padding-block: 5px;
     padding-inline: 5px 7px;
     border-radius: 0% 60% 60% 0%;
 }
@@ -98,18 +101,53 @@ body {
     outline: transparent;
 }
 
+/* Box */
+/* ---------------------------------------- */
+
 .box {
-    width: 200px;
-    height: 200px;
-    border: 2px solid;
-    padding: 5px 7px;
-    color: white;
-    font-size: 120%;
-    font-weight: 700;
     display: flex;
     justify-content: center;
     align-items: start;
     flex-direction: column;
+    width: 200px;
+    height: 200px;
+    border: 2px solid;
+    padding: 5px 7px;
+    color: black;
+    background-color: white;
+    font-size: 120%;
+    font-weight: 700;
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.box1 {
+    color: rgba(255 0 0 / 1);
+    border-color: red;
+}
+
+.box1:hover {
+    color: rgba(255 0 0 / .3);
+}
+
+.box2 {
+    color: rgba(0 0 255 / 1);
+    border-color: blue;
+}
+
+.box2:hover {
+    color: rgba(0 0 255 / .3);
+}
+
+.box3 {
+    color: rgba(255 255 255 / 1);
+    background-color: red;
+    border-color: red;
+}
+
+.box3:hover {
+    color: rgba(255 255 255 / .3);
 }
 
 .rotated {
@@ -117,17 +155,41 @@ body {
     transform: rotateZ(var(--rotation, 45deg));
 }
 
-.non-rotated {
+.box-center {
+    position: absolute;
+    top: var(--y, 10);
+    left: var(--x, 10);
+    transform: translate(-50%, -50%);
+    width: 2vh;
+    height: 2vh;
+    border-radius: 50%;
+    opacity: .15;
+    pointer-events: none;
+}
+
+.box1-center {
     background-color: red;
-    border-color: red;
+    opacity: .15;
 }
 
-.rotated-box-1 {
-    color: red;
-    border-color: red;
+.box1:hover ~ .box1-center {
+    opacity: 1;
 }
 
-.rotated-box-2 {
-    color: blue;
-    border-color: blue;
+.box2-center {
+    background-color: blue;
+    opacity: .15;
+}
+
+.box2:hover ~ .box2-center {
+    opacity: 1;
+}
+
+.box3-center {
+    background-color: white;
+    opacity: .5;
+}
+
+.box3:hover ~ .box3-center {
+    opacity: 1;
 }
