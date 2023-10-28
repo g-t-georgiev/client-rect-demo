@@ -13,21 +13,35 @@ initializeBox();
 
 function initializeBox() {
     let rotationProp = getCSSProperty('transform', getStyleMap(rotatedContainer));
-    console.log('Initial rotation property', rotationProp);
+    // console.log('Initial rotation property', rotationProp);
     let rotationValue = rotationProp[0]?.angle.value ?? 0;
-    console.log('Initial rotation property value', rotationValue);
+    // console.log('Initial rotation property value', rotationValue);
     rotationInputElem.value = rotationValue;
     updateBoxes(rotationValue);
     currentInputValue = rotationValue;
 
     decrBtn.addEventListener('click', decreaseRotationHandler);
     incrBtn.addEventListener('click', increateRotationHandler);
-    rotationInputElem.addEventListener('input', onInputHandler);
+    rotationInputElem.addEventListener('input', debouncer(onInputHandler, 500));
     rotationInputElem.addEventListener('change', onChangeHandler);
 }
 
+function debouncer(f, timeout) {
+    let timeoutId;
+    return new Proxy(f, { 
+        apply(target, thisArg, argsArray) {
+            timeoutId && clearTimeout(timeoutId);
+            timeoutId = setTimeout(function () {
+                clearTimeout(timeoutId);
+                console.log(argsArray);
+                Reflect.apply(target, thisArg, argsArray);
+            }, timeout);
+        } 
+    });
+}
+
 function onInputHandler(ev) {
-    let value = ev.currentTarget.value.trim();
+    let value = ev.target.value.trim();
     let isInvalid = isNaN(value);
 
     if (value.length === 0) value = 0;
@@ -50,16 +64,16 @@ function onInputHandler(ev) {
 }
 
 function onChangeHandler(ev) {
-    let value = ev.currentTarget.value.trim();
+    let value = ev.target.value.trim();
     let isInvalid = isNaN(value);
 
-    if (value.length === 0) ev.currentTarget.value = 0;
+    if (value.length === 0) ev.target.value = 0;
 
     decrBtn.toggleAttribute('disabled', isInvalid);
     incrBtn.toggleAttribute('disabled', isInvalid);
 
     if (isInvalid) {
-        ev.currentTarget.focus({ focusVisible: true });
+        ev.target.focus({ focusVisible: true });
         errMsgElem.textContent = 'Only numbers allowed!';
         return;
     }
@@ -142,11 +156,9 @@ function updateBoxes(data) {
     rect2Details5.textContent = `\nWidth: ${nonrotatedContainerRect.width.toFixed(2)}`;
     rect2Details6.textContent = `\nHeight: ${nonrotatedContainerRect.height.toFixed(2)}`;
     nonrotatedContainer.append(rect2Details0, rect2Details1, rect2Details2, rect2Details3, rect2Details4, rect2Details5, rect2Details6);
-    console.log('Rotated container rect', rotatedContainerRect);
-    console.log('Non-rotated container rect', nonrotatedContainerRect);
 
     const rotatedContainer2Rect = getBoundingClientRect(rotatedContainer2);
-    const normalizedRect = normalizeClientRect(rotatedContainer2Rect, rotationValue);
+    const normalizedRect = normalizeClientRect(rotatedContainer2, rotatedContainer2Rect, rotationValue);
     console.log('Normalized container rect', normalizedRect);
     rotatedContainer2.innerHTML = '';
     const rect3Details0 = document.createElement('div');
@@ -170,12 +182,13 @@ function updateBoxes(data) {
  * Takes a DOMRect of an element, to which a rotational 
  * transformation was applied and the angle of the rotation applied, 
  * calculating and returning normalized client rect values.
+ * @param {HTMLElement} element
  * @param {DOMRect} clientRect 
  * @param {number} rotationAngle 
  */
-function normalizeClientRect(rect, rotationAngle) {
+function normalizeClientRect(element, clientRect, rotationAngle) {
     // Convert the rotation angle to radians
     const radians = rotationAngle * (Math.PI / 180);
 
-    return new DOMRect(rect.x, rect.y, rect.width, rect.height);
+    return new DOMRect(clientRect.x, clientRect.y, clientRect.width, clientRect.height);
 }
