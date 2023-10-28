@@ -172,21 +172,32 @@ body {
 
 @media screen and (min-width: 1025px) {
     /* Hover effects */
+    .controls-wrapper:has(.toggle-checkbox:checked) ~ .box1,
     .box1:hover {
         color: rgba(255 0 0 / .3);
     }
+
+    .controls-wrapper:has(.toggle-checkbox:checked) ~ .box2,
     .box2:hover {
         color: rgba(0 0 255 / .3);
     }
+
+    .controls-wrapper:has(.toggle-checkbox:checked) ~ .box3,
     .box3:hover {
         color: rgba(255 255 255 / .3);
     }
+
+    .controls-wrapper:has(.toggle-checkbox:checked) ~ .box1-center,
     .box1:hover ~ .box1-center {
         opacity: 1;
     }
+
+    .controls-wrapper:has(.toggle-checkbox:checked) ~ .box2-center,
     .box2:hover ~ .box2-center {
         opacity: 1;
     }
+
+    .controls-wrapper:has(.toggle-checkbox:checked) ~ .box3-center,
     .box3:hover ~ .box3-center {
         opacity: 1;
     }
