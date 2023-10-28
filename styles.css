@@ -40,6 +40,7 @@ body {
 .controls-wrapper label {
     font-size: 1.20625rem;
     font-weight: 600;
+    user-select: none;
 }
 
 .rotation-input-wrapper {
