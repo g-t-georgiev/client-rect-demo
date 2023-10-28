@@ -127,27 +127,15 @@ body {
     border-color: red;
 }
 
-.box1:hover {
-    color: rgba(255 0 0 / .3);
-}
-
 .box2 {
     color: rgba(0 0 255 / 1);
     border-color: blue;
-}
-
-.box2:hover {
-    color: rgba(0 0 255 / .3);
 }
 
 .box3 {
     color: rgba(255 255 255 / 1);
     background-color: red;
     border-color: red;
-}
-
-.box3:hover {
-    color: rgba(255 255 255 / .3);
 }
 
 .rotated {
@@ -172,17 +160,9 @@ body {
     opacity: .15;
 }
 
-.box1:hover ~ .box1-center {
-    opacity: 1;
-}
-
 .box2-center {
     background-color: blue;
     opacity: .15;
-}
-
-.box2:hover ~ .box2-center {
-    opacity: 1;
 }
 
 .box3-center {
@@ -190,6 +170,24 @@ body {
     opacity: .5;
 }
 
-.box3:hover ~ .box3-center {
-    opacity: 1;
+@media screen and (min-width: 1025px) {
+    /* Hover effects */
+    .box1:hover {
+        color: rgba(255 0 0 / .3);
+    }
+    .box2:hover {
+        color: rgba(0 0 255 / .3);
+    }
+    .box3:hover {
+        color: rgba(255 255 255 / .3);
+    }
+    .box1:hover ~ .box1-center {
+        opacity: 1;
+    }
+    .box2:hover ~ .box2-center {
+        opacity: 1;
+    }
+    .box3:hover ~ .box3-center {
+        opacity: 1;
+    }
 }
