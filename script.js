@@ -126,14 +126,15 @@ function updateRotation(box, value) {
 }
 
 function incrementRotation(ev) {
+    let inputElem = ev.target;
     let value = Number(rotationInputElem.value.trim());
 
     if (isNaN(value)) return;
 
     value++;
 
-    rotationInputElem.value = value;
-    let rotation = Number(rotationInputElem.value);
+    inputElem.value = value;
+    let rotation = Number(inputElem.value);
     boxList.forEach(function (box, key) {
         const center = pointsList.item(key);
         
@@ -148,14 +149,15 @@ function incrementRotation(ev) {
 }
 
 function decrementRotation(ev) {
+    let inputElem = ev.target;
     let value = Number(rotationInputElem.value.trim());
 
     if (isNaN(value)) return;
 
     value--;
 
-    rotationInputElem.value = value;
-    let rotation = Number(rotationInputElem.value);
+    inputElem.value = value;
+    let rotation = Number(inputElem.value);
     boxList.forEach(function (box, key) {
         const center = pointsList.item(key);
         
