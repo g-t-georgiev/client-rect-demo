@@ -10,8 +10,6 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-direction: column;
-    gap: 3rem;
     min-height: 100vh;
 }
 
@@ -105,6 +103,14 @@ body {
 /* Box */
 /* ---------------------------------------- */
 
+.box-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 3rem;
+}
+
 .box {
     display: flex;
     justify-content: center;
@@ -146,8 +152,8 @@ body {
 
 .box-center {
     position: absolute;
-    top: var(--y, 10);
-    left: var(--x, 10);
+    top: var(--y, 10px);
+    left: var(--x, 10px);
     transform: translate(-50%, -50%);
     width: 2vh;
     height: 2vh;
@@ -161,9 +167,17 @@ body {
     opacity: .15;
 }
 
+.box1-center.show {
+    opacity: .35;
+}
+
 .box2-center {
     background-color: blue;
     opacity: .15;
+}
+
+.box2-center.show {
+    opacity: .35;
 }
 
 .box3-center {
@@ -171,35 +185,6 @@ body {
     opacity: .5;
 }
 
-@media screen and (min-width: 1025px) {
-    /* Hover effects */
-    .controls-wrapper:has(.toggle-checkbox:checked) ~ .box1,
-    .box1:hover {
-        color: rgba(255 0 0 / .3);
-    }
-
-    .controls-wrapper:has(.toggle-checkbox:checked) ~ .box2,
-    .box2:hover {
-        color: rgba(0 0 255 / .3);
-    }
-
-    .controls-wrapper:has(.toggle-checkbox:checked) ~ .box3,
-    .box3:hover {
-        color: rgba(255 255 255 / .3);
-    }
-
-    .controls-wrapper:has(.toggle-checkbox:checked) ~ .box1-center,
-    .box1:hover ~ .box1-center {
-        opacity: 1;
-    }
-
-    .controls-wrapper:has(.toggle-checkbox:checked) ~ .box2-center,
-    .box2:hover ~ .box2-center {
-        opacity: 1;
-    }
-
-    .controls-wrapper:has(.toggle-checkbox:checked) ~ .box3-center,
-    .box3:hover ~ .box3-center {
-        opacity: 1;
-    }
+.box3-center.show {
+    opacity: .75;
 }
