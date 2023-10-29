@@ -1,32 +1,40 @@
-const rotationInputWrapper = document.querySelector('.controls-wrapper');
+const controlsWrapper = document.querySelector('.controls-wrapper');
 const errMsgElem = document.querySelector('.err-msg');
-const rotationInputElem = rotationInputWrapper.querySelector('#rotation-input');
-const decrBtn = rotationInputWrapper.querySelector('.decr-btn');
-const incrBtn = rotationInputWrapper.querySelector('.incr-btn');
-const box1 = document.querySelector('.box1');
-const box2 = document.querySelector('.box2');
-const box3 = document.querySelector('.box3');
-const box1center = document.querySelector('.box1-center');
-const box2center = document.querySelector('.box2-center');
-const box3center = document.querySelector('.box3-center');
+const rotationInputElem = controlsWrapper.querySelector('#rotation-input');
+const decrBtn = controlsWrapper.querySelector('.decr-btn');
+const incrBtn = controlsWrapper.querySelector('.incr-btn');
+const toggleCheckbox = controlsWrapper.querySelector('.toggle-checkbox');
+const boxList = document.querySelectorAll('.box');
+const pointsList = document.querySelectorAll('.box-center');
 
-let currentInputValue;
+let currentRotation;
 
 initializeBox();
 
 function initializeBox() {
-    let rotationProp = getCSSProperty('transform', getStyleMap(box1));
+    let rotationProp = getCSSProperty('transform', getStyleMap(boxList.item(0)));
     // console.log('Initial rotation property', rotationProp);
     let rotationValue = rotationProp[0]?.angle.value ?? 0;
     // console.log('Initial rotation property value', rotationValue);
     rotationInputElem.value = rotationValue;
-    updateBoxes(rotationValue);
-    currentInputValue = rotationValue;
+    let rotation = Number(rotationValue);
+    boxList.forEach(function (box, key) {
+        const center = pointsList.item(key);
+
+        if (key + 1 !== 3) {
+            updateBoxes(box, center, rotation);
+            return;
+        }
+
+        updateBoxes(box, center, 0);
+    });
+    currentRotation = rotation;
 
     decrBtn.addEventListener('click', decrementRotation);
     incrBtn.addEventListener('click', incrementRotation);
     rotationInputElem.addEventListener('input', debouncer(inputHandler, 500));
     rotationInputElem.addEventListener('change', changeHandler);
+    toggleCheckbox.addEventListener('change', checkboxChangeHandler);
     window.addEventListener('resize', resizeHandler);
 }
 
@@ -43,21 +51,27 @@ function debouncer(f, timeout) {
     });
 }
 
+function checkboxChangeHandler(ev) {
+    const checkbox = ev.target;
+    pointsList.forEach(function (center) {
+        center.classList.toggle('show', checkbox.checked);
+    });
+}
+
 function resizeHandler() {
-    const boxes = document.querySelectorAll('.box');
-    const points = document.querySelectorAll('.box-center');
-    boxes.forEach(function (box, key) {
+    boxList.forEach(function (box, key) {
         const boxRect = box.getBoundingClientRect();
-        const center = points.item(key);
+        const center = pointsList.item(key);
+        updateBoxes(box, center, currentRotation);
         setCentralPoint(center, boxRect);
+        
     });
 }
 
 function inputHandler(ev) {
-    let value = ev.target.value.trim();
-    let isInvalid = isNaN(value);
-
-    if (value.length === 0) value = 0;
+    let rotation = ev.target.value.trim();
+    rotation = Number(rotation);
+    let isInvalid = isNaN(rotation);
 
     decrBtn.toggleAttribute('disabled', isInvalid);
     incrBtn.toggleAttribute('disabled', isInvalid);
@@ -67,13 +81,21 @@ function inputHandler(ev) {
         return;
     }
 
-    value = Number(value);
     errMsgElem.textContent = '';
 
-    updateRotation(box1, value);
-    updateRotation(box2, value);
-    updateBoxes(value);
-    currentInputValue = value;
+    boxList.forEach(function (box, key) {
+        const center = pointsList.item(key);
+        
+        if (key + 1 !== 3) {
+            updateRotation(box, rotation);
+            updateBoxes(box, center, rotation);
+            return;
+        }
+
+        updateBoxes(box, center, 0);
+    });
+
+    currentRotation = rotation;
 }
 
 function changeHandler(ev) {
@@ -96,12 +118,11 @@ function changeHandler(ev) {
 
 /**
  * Update rotation value on element.
- * @param {HTMLElement} element 
+ * @param {HTMLElement} box 
  * @param {number} value 
  */
-function updateRotation(element, value) {
-    element.style.setProperty('--rotation', `${value}deg`);
-    element.style.setProperty('--rotation', `${value}deg`);
+function updateRotation(box, value) {
+    box.style.setProperty('--rotation', `${value}deg`);
 }
 
 function incrementRotation(ev) {
@@ -112,9 +133,18 @@ function incrementRotation(ev) {
     value++;
 
     rotationInputElem.value = value;
-    box1.style.setProperty('--rotation', `${rotationInputElem.value}deg`);
-    box2.style.setProperty('--rotation', `${rotationInputElem.value}deg`);
-    updateBoxes(rotationInputElem.value);
+    let rotation = Number(rotationInputElem.value);
+    boxList.forEach(function (box, key) {
+        const center = pointsList.item(key);
+        
+        if (key + 1 !== 3) {
+            updateRotation(box, rotation)
+            updateBoxes(box, center, rotation);
+            return;
+        }
+
+        updateBoxes(box, center, 0);
+    });
 }
 
 function decrementRotation(ev) {
@@ -125,9 +155,18 @@ function decrementRotation(ev) {
     value--;
 
     rotationInputElem.value = value;
-    box1.style.setProperty('--rotation', `${rotationInputElem.value}deg`);
-    box2.style.setProperty('--rotation', `${rotationInputElem.value}deg`);
-    updateBoxes(rotationInputElem.value);
+    let rotation = Number(rotationInputElem.value);
+    boxList.forEach(function (box, key) {
+        const center = pointsList.item(key);
+        
+        if (key + 1 !== 3) {
+            updateRotation(box, rotation);
+            updateBoxes(box, center, rotation);
+            return;
+        }
+
+        updateBoxes(box, center, 0);
+    });
 }
 
 function getBoundingClientRect(element) {
@@ -142,67 +181,31 @@ function getCSSProperty(property, styleMap) {
     return styleMap.get(property);
 }
 
-function updateBoxes(data) {
-    const rotationValue = Number(data);
-
-    const box1Rect = getBoundingClientRect(box1);
-    setCentralPoint(box1center, box1Rect);
-    box1.innerHTML = '';
-    const box1Deatils0 = document.createElement('div');
-    const box1Deatils1 = document.createElement('div');
-    const box1Deatils2 = document.createElement('div');
-    const box1Deatils3 = document.createElement('div');
-    const box1Deatils4 = document.createElement('div');
-    const box1Deatils5 = document.createElement('div');
-    const box1Deatils6 = document.createElement('div');
-    box1Deatils0.textContent = `Rotation: ${rotationValue}deg`;
-    box1Deatils1.textContent = `\nTop: ${box1Rect.top.toFixed(2)}`;
-    box1Deatils2.textContent = `\nLeft: ${box1Rect.left.toFixed(2)}`;
-    box1Deatils3.textContent = `\nRight: ${box1Rect.right.toFixed(2)}`;
-    box1Deatils4.textContent = `\nBottom: ${box1Rect.bottom.toFixed(2)}`;
-    box1Deatils5.textContent = `\nWidth: ${box1Rect.width.toFixed(2)}`;
-    box1Deatils6.textContent = `\nHeight: ${box1Rect.height.toFixed(2)}`;
-    box1.append(box1Deatils0, box1Deatils1, box1Deatils2, box1Deatils3, box1Deatils4, box1Deatils5, box1Deatils6);
-
-    const box2Rect = getBoundingClientRect(box2);
-    setCentralPoint(box2center, box2Rect);
-    // const normalizedRect = adjustClientRect(box2Rect, rotationValue);
-    // console.log('Normalized container rect', normalizedRect);
-    box2.innerHTML = '';
-    const rect2Details0 = document.createElement('div');
-    const rect2Details1 = document.createElement('div');
-    const rect2Details2 = document.createElement('div');
-    const rect2Details3 = document.createElement('div');
-    const rect2Details4 = document.createElement('div');
-    const rect2Details5 = document.createElement('div');
-    const rect2Details6 = document.createElement('div');
-    rect2Details0.textContent = `Rotation: ${rotationValue}deg`;
-    rect2Details1.textContent = `\nTop: ${box2Rect.top.toFixed(2)}`;
-    rect2Details2.textContent = `\nLeft: ${box2Rect.left.toFixed(2)}`;
-    rect2Details3.textContent = `\nRight: ${box2Rect.right.toFixed(2)}`;
-    rect2Details4.textContent = `\nBottom: ${box2Rect.bottom.toFixed(2)}`;
-    rect2Details5.textContent = `\nWidth: ${box2Rect.width.toFixed(2)}`;
-    rect2Details6.textContent = `\nHeight: ${box2Rect.height.toFixed(2)}`;
-    box2.append(rect2Details0, rect2Details1, rect2Details2, rect2Details3, rect2Details4, rect2Details5, rect2Details6);
-
-    const box3Rect = getBoundingClientRect(box3);
-    setCentralPoint(box3center, box3Rect);
-    box3.innerHTML = '';
-    const rect3Details0 = document.createElement('div');
-    const rect3Details1 = document.createElement('div');
-    const rect3Details2 = document.createElement('div');
-    const rect3Details3 = document.createElement('div');
-    const rect3Details4 = document.createElement('div');
-    const rect3Details5 = document.createElement('div');
-    const rect3Details6 = document.createElement('div');
-    rect3Details0.textContent = 'Rotation: 0deg';
-    rect3Details1.textContent = `\nTop: ${box3Rect.top.toFixed(2)}`;
-    rect3Details2.textContent = `\nLeft: ${box3Rect.left.toFixed(2)}`;
-    rect3Details3.textContent = `\nRight: ${box3Rect.right.toFixed(2)}`;
-    rect3Details4.textContent = `\nBottom: ${box3Rect.bottom.toFixed(2)}`;
-    rect3Details5.textContent = `\nWidth: ${box3Rect.width.toFixed(2)}`;
-    rect3Details6.textContent = `\nHeight: ${box3Rect.height.toFixed(2)}`;
-    box3.append(rect3Details0, rect3Details1, rect3Details2, rect3Details3, rect3Details4, rect3Details5, rect3Details6);
+/**
+ * Update box content data.
+ * @param {HTMLElement} box 
+ * @param {HTMLElement} center 
+ * @param {number} rotation 
+ */
+function updateBoxes(box, center, rotation) {
+    box.innerHTML = '';
+    const boxRect = getBoundingClientRect(box);
+    setCentralPoint(center, boxRect);
+    const boxDeatils0 = document.createElement('div');
+    const boxDeatils1 = document.createElement('div');
+    const boxDeatils2 = document.createElement('div');
+    const boxDeatils3 = document.createElement('div');
+    const boxDeatils4 = document.createElement('div');
+    const boxDeatils5 = document.createElement('div');
+    const boxDeatils6 = document.createElement('div');
+    boxDeatils0.textContent = `Rotation: ${rotation}deg`;
+    boxDeatils1.textContent = `\nTop: ${boxRect.top.toFixed(2)}`;
+    boxDeatils2.textContent = `\nLeft: ${boxRect.left.toFixed(2)}`;
+    boxDeatils3.textContent = `\nRight: ${boxRect.right.toFixed(2)}`;
+    boxDeatils4.textContent = `\nBottom: ${boxRect.bottom.toFixed(2)}`;
+    boxDeatils5.textContent = `\nWidth: ${boxRect.width.toFixed(2)}`;
+    boxDeatils6.textContent = `\nHeight: ${boxRect.height.toFixed(2)}`;
+    box.append(boxDeatils0, boxDeatils1, boxDeatils2, boxDeatils3, boxDeatils4, boxDeatils5, boxDeatils6);
 }
 
 /**
@@ -258,6 +261,7 @@ function calcCentralPointCoords(x, y, width, height) {
  */
 function setCentralPoint(center, boxRect) {
     const [cx, cy] = calcCentralPointCoords(boxRect.x, boxRect.y, boxRect.width, boxRect.height);
+    // console.log(cx, cy);
     center.style.setProperty('--x', `${cx}px`);
     center.style.setProperty('--y', `${cy}px`);
 }
