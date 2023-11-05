@@ -69,40 +69,39 @@ cursors.types.rotate.remove();
 initialize();
 
 function setupActions() {
-    let dragStartX = boxRect.x;
-    let dragStartY = boxRect.y;
+    let dragX = boxRect.x;
+    let dragY = boxRect.y;
 
-    let resizeStartX = boxRect.width;
-    let resizeStartY = boxRect.height;
+    let resizeX = boxRect.width;
+    let resizeY = boxRect.height;
 
     // Resizing action
     resizeHandleElem.addEventListener('mousedown', function (event) {
         if (isDragging) return;
-        console.log('Resize start', resizeStartX, resizeStartY);
+        
         isResizing = true;
-        resizeStartX = event.clientX - resizeStartX;
-        resizeStartY = event.clientY - resizeStartY;
+        resizeX = event.clientX - resizeX;
+        resizeY = event.clientY - resizeY;
+        // console.log('Resize start', resizeX, resizeY);
     });
 
     document.addEventListener('mousemove', function (event) {
         if (!isResizing || isDragging) return;
 
-        let deltaWidth = event.clientX - resizeStartX;
-        let deltaHeight = event.clientY - resizeStartY;
-
-        console.log('Resizing...', deltaWidth, deltaHeight);
-        boxElem.style.setProperty('--width', Math.max(0, deltaWidth / viewportWidth));
-        boxElem.style.setProperty('--height', Math.max(0, deltaHeight / viewportHeight));
-        // rotateHandleElem.style.setProperty('--line-height', );
-        boxRect.width = deltaWidth;
-        boxRect.height = deltaHeight;
+        // TODO: Set resize tresholds
+        let deltaWidth = Math.max(event.clientX - resizeX, 0);
+        let deltaHeight = Math.max(event.clientY - resizeY, 0);
+        // console.log('Resizing...', deltaWidth, deltaHeight);
+        updateBoxRect({ width: deltaWidth, height: deltaHeight });
+        boxElem.style.setProperty('--width', boxRect.width);
+        boxElem.style.setProperty('--height', boxRect.height);
     });
 
     document.addEventListener('mouseup', function (event) {
         if (!isResizing || isDragging) return;
-        console.log('Resize end');
-        resizeStartX = event.clientX - resizeStartX;
-        resizeStartY = event.clientY - resizeStartY;
+        resizeX = event.clientX - resizeX;
+        resizeY = event.clientY - resizeY;
+        // console.log('Resize end', resizeX, resizeY);
         isResizing = false;
     });
 
@@ -111,25 +110,32 @@ function setupActions() {
         if (isResizing) return;
 
         isDragging = true;
-        dragStartX = event.clientX - dragStartX;
-        dragStartY = event.clientY - dragStartY;
+        dragX = event.clientX - dragX;
+        dragY = event.clientY - dragY;
+        // console.log('Drag start', dragX, dragY);
     });
     document.addEventListener('mouseup', function (event) {
         if (!isDragging || isResizing) return;
 
-        dragStartX = event.clientX - dragStartX;
-        dragStartY = event.clientY - dragStartY;
+        dragX = event.clientX - dragX;
+        dragY = event.clientY - dragY;
+        // console.log('Drag end', dragX, dragY);
         isDragging = false;
     });
     document.addEventListener('mousemove', function (event) {
         if (!isDragging || isResizing) return;
 
-        let deltaX = event.clientX - dragStartX;
-        let deltaY = event.clientY - dragStartY;
-        boxElem.style.setProperty('--x', Math.max(0, Math.min(deltaX / viewportWidth, 100)));
-        boxElem.style.setProperty('--y', Math.max(0, Math.min(deltaY / viewportHeight, 100)));
-        boxRect.x = deltaX;
-        boxRect.y = deltaY;
+        // TODO: Set drag tresholds
+        // let minWidth = event.clientX - boxRect.x;
+        // let maxWidth = viewportWidth - (boxRect.x + boxRect.width - event.clientX);
+        // let minHeight = event.clientY - boxRect.y;
+        // let maxHeight = viewportHeight - (boxRect.y + boxRect.height - event.clientY);
+        let deltaX = event.clientX - dragX;
+        let deltaY = event.clientY - dragY;
+        // console.log('Dragging...', deltaX, deltaY);
+        updateBoxRect({ x: deltaX, y: deltaY });
+        boxElem.style.setProperty('--x', boxRect.x);
+        boxElem.style.setProperty('--y', boxRect.y);
     });
 }
 
@@ -153,10 +159,26 @@ function setupCursors() {
 }
 
 function setupBox() {
-    boxElem.style.setProperty('--width', boxRect.width / viewportWidth);
-    boxElem.style.setProperty('--height', boxRect.height / viewportHeight);
-    boxElem.style.setProperty('--x', Math.max(0, Math.min(boxRect.x / viewportWidth, 80)));
-    boxElem.style.setProperty('--y', Math.max(0, Math.min(boxRect.y / viewportHeight, 80)));
+    boxElem.style.setProperty('--width', boxRect.width);
+    boxElem.style.setProperty('--height', boxRect.height);
+    boxElem.style.setProperty('--x', boxRect.x);
+    boxElem.style.setProperty('--y', boxRect.y);
+}
+
+/**
+ * Updates box rect state values.
+ * @param {object} rect 
+ * @param {number | undefined} rect.x 
+ * @param {number | undefined} rect.y 
+ * @param {number | undefined} rect.width 
+ * @param {number | undefined} rect.height 
+ * @returns {{ x: number, y: number, width: number, height: number }}
+ */
+function updateBoxRect({ x, y, width, height }) {
+    if (x && typeof x == 'number') boxRect.x = x;
+    if (y && typeof y == 'number') boxRect.y = y;
+    if (width && typeof width == 'number') boxRect.width = width;
+    if (height && typeof height == 'number') boxRect.height = height;
 }
 
 function initialize() {
@@ -170,6 +192,6 @@ function initialize() {
     window.addEventListener('resize', function () {
         viewportWidth = window.innerWidth;
         viewportHeight = window.innerHeight;
-        setupBox();
+        // setupBox();
     });
 }
