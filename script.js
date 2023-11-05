@@ -1,269 +1,175 @@
-const controlsWrapper = document.querySelector('.controls-wrapper');
-const errMsgElem = document.querySelector('.err-msg');
-const rotationInputElem = controlsWrapper.querySelector('#rotation-input');
-const decrBtn = controlsWrapper.querySelector('.decr-btn');
-const incrBtn = controlsWrapper.querySelector('.incr-btn');
-const toggleCheckbox = controlsWrapper.querySelector('.toggle-checkbox');
-const boxList = document.querySelectorAll('.box');
-const pointsList = document.querySelectorAll('.box-center');
+/** @type HTMLElement */
+const rectElem = document.querySelector('[data-rect]');
+/** @type HTMLElement */
+const boxElem = document.querySelector('[data-box]');
+/** @type HTMLElement */
+const rotateHandleElem = document.querySelector('[data-box-rotate-handle]');
+/** @type HTMLElement */
+const resizeHandleElem = document.querySelector('[data-box-resize-handle]');
 
-let currentRotation;
+const cursors = {
+    types: {
+        move: document.querySelector('[data-cursor="move"]'),
+        resize: document.querySelector('[data-cursor="resize"]'),
+        rotate: document.querySelector('[data-cursor="rotate"]'),
+    },
+    /**
+     * @param {SVGAElement} cursor 
+     * @param {PointerEvent} event 
+     */
+    attach(cursor, event) {
+        if (!cursor) return;
 
-initializeBox();
-
-function initializeBox() {
-    let rotationProp = getCSSProperty('transform', getStyleMap(boxList.item(0)));
-    // console.log('Initial rotation property', rotationProp);
-    let rotationValue = rotationProp[0]?.angle.value ?? 0;
-    // console.log('Initial rotation property value', rotationValue);
-    rotationInputElem.value = rotationValue;
-    let rotation = Number(rotationValue);
-    boxList.forEach(function (box, key) {
-        const center = pointsList.item(key);
-
-        if (key + 1 !== 3) {
-            updateBoxes(box, center, rotation);
+        if (cursors.current) {
+            cursors.current.replaceWith(cursor);
             return;
         }
 
-        updateBoxes(box, center, 0);
-    });
-    currentRotation = rotation;
+        document.body.append(cursor);
+        cursors.current = cursor;
+    },
+    /**
+     * Detach cursor
+     * @param {PointerEvent} event
+     */
+    detach(event) {
+        if (!cursors.current) return;
 
-    decrBtn.addEventListener('click', decrementRotation);
-    incrBtn.addEventListener('click', incrementRotation);
-    rotationInputElem.addEventListener('input', debouncer(inputHandler, 500));
-    rotationInputElem.addEventListener('change', changeHandler);
-    toggleCheckbox.addEventListener('change', checkboxChangeHandler);
-    window.addEventListener('resize', resizeHandler);
-}
-
-function debouncer(f, timeout) {
-    let timeoutId;
-    return new Proxy(f, {
-        apply(target, thisArg, argsArray) {
-            timeoutId && clearTimeout(timeoutId);
-            timeoutId = setTimeout(function () {
-                clearTimeout(timeoutId);
-                Reflect.apply(target, thisArg, argsArray);
-            }, timeout);
+        cursors.current.remove();
+        cursors.current = null;
+    },
+    /**
+     * Move cursor.
+     * @param {PointerEvent} event 
+     */
+    move(event) {
+        if (cursors.current && event) {
+            cursors.current.style.setProperty('--x', event.clientX);
+            cursors.current.style.setProperty('--y', event.clientY);
         }
+    },
+    current: null
+};
+
+const boxRect = {
+    width: 150,
+    height: 150,
+    x: 350,
+    y: 350,
+}
+
+let viewportWidth = window.innerWidth;
+let viewportHeight = window.innerHeight;
+let isDragging = false;
+let isResizing = false;
+
+cursors.types.move.remove();
+cursors.types.resize.remove();
+cursors.types.rotate.remove();
+initialize();
+
+function setupActions() {
+    let dragStartX = boxRect.x;
+    let dragStartY = boxRect.y;
+
+    let resizeStartX = boxRect.width;
+    let resizeStartY = boxRect.height;
+
+    // Resizing action
+    resizeHandleElem.addEventListener('mousedown', function (event) {
+        if (isDragging) return;
+        console.log('Resize start', resizeStartX, resizeStartY);
+        isResizing = true;
+        resizeStartX = event.clientX - resizeStartX;
+        resizeStartY = event.clientY - resizeStartY;
+    });
+
+    document.addEventListener('mousemove', function (event) {
+        if (!isResizing || isDragging) return;
+
+        let deltaWidth = event.clientX - resizeStartX;
+        let deltaHeight = event.clientY - resizeStartY;
+
+        console.log('Resizing...', deltaWidth, deltaHeight);
+        boxElem.style.setProperty('--width', Math.max(0, deltaWidth / viewportWidth));
+        boxElem.style.setProperty('--height', Math.max(0, deltaHeight / viewportHeight));
+        // rotateHandleElem.style.setProperty('--line-height', );
+        boxRect.width = deltaWidth;
+        boxRect.height = deltaHeight;
+    });
+
+    document.addEventListener('mouseup', function (event) {
+        if (!isResizing || isDragging) return;
+        console.log('Resize end');
+        resizeStartX = event.clientX - resizeStartX;
+        resizeStartY = event.clientY - resizeStartY;
+        isResizing = false;
+    });
+
+    // Dragging action
+    boxElem.addEventListener('mousedown', function (event) {
+        if (isResizing) return;
+
+        isDragging = true;
+        dragStartX = event.clientX - dragStartX;
+        dragStartY = event.clientY - dragStartY;
+    });
+    document.addEventListener('mouseup', function (event) {
+        if (!isDragging || isResizing) return;
+
+        dragStartX = event.clientX - dragStartX;
+        dragStartY = event.clientY - dragStartY;
+        isDragging = false;
+    });
+    document.addEventListener('mousemove', function (event) {
+        if (!isDragging || isResizing) return;
+
+        let deltaX = event.clientX - dragStartX;
+        let deltaY = event.clientY - dragStartY;
+        boxElem.style.setProperty('--x', Math.max(0, Math.min(deltaX / viewportWidth, 100)));
+        boxElem.style.setProperty('--y', Math.max(0, Math.min(deltaY / viewportHeight, 100)));
+        boxRect.x = deltaX;
+        boxRect.y = deltaY;
     });
 }
 
-function checkboxChangeHandler(ev) {
-    const checkbox = ev.target;
-    pointsList.forEach(function (center) {
-        center.classList.toggle('show', checkbox.checked);
-    });
-}
-
-function resizeHandler() {
-    boxList.forEach(function (box, key) {
-        const boxRect = box.getBoundingClientRect();
-        const center = pointsList.item(key);
-        updateBoxes(box, center, currentRotation);
-        setCentralPoint(center, boxRect);
-        
-    });
-}
-
-function inputHandler(ev) {
-    let rotation = ev.target.value.trim();
-    rotation = Number(rotation);
-    let isInvalid = isNaN(rotation);
-
-    decrBtn.toggleAttribute('disabled', isInvalid);
-    incrBtn.toggleAttribute('disabled', isInvalid);
-
-    if (isInvalid) {
-        errMsgElem.textContent = 'Only numbers allowed!';
-        return;
-    }
-
-    errMsgElem.textContent = '';
-
-    boxList.forEach(function (box, key) {
-        const center = pointsList.item(key);
-        
-        if (key + 1 !== 3) {
-            updateRotation(box, rotation);
-            updateBoxes(box, center, rotation);
+function setupCursors() {
+    boxElem.addEventListener('pointermove', cursors.move);
+    boxElem.addEventListener('pointerover', function (event) {
+        // console.log(event.target);
+        if (event.target == resizeHandleElem) {
+            cursors.attach.call(this, cursors.types.resize);
             return;
         }
 
-        updateBoxes(box, center, 0);
-    });
-
-    currentRotation = rotation;
-}
-
-function changeHandler(ev) {
-    let value = ev.target.value.trim();
-    let isInvalid = isNaN(value);
-
-    if (value.length === 0) ev.target.value = 0;
-
-    decrBtn.toggleAttribute('disabled', isInvalid);
-    incrBtn.toggleAttribute('disabled', isInvalid);
-
-    if (isInvalid) {
-        ev.target.focus({ focusVisible: true });
-        errMsgElem.textContent = 'Only numbers allowed!';
-        return;
-    }
-
-    errMsgElem.textContent = '';
-}
-
-/**
- * Update rotation value on element.
- * @param {HTMLElement} box 
- * @param {number} value 
- */
-function updateRotation(box, value) {
-    box.style.setProperty('--rotation', `${value}deg`);
-}
-
-function incrementRotation(ev) {
-    let inputElem = ev.target;
-    let value = Number(rotationInputElem.value.trim());
-
-    if (isNaN(value)) return;
-
-    value++;
-
-    inputElem.value = value;
-    let rotation = Number(inputElem.value);
-    boxList.forEach(function (box, key) {
-        const center = pointsList.item(key);
-        
-        if (key + 1 !== 3) {
-            updateRotation(box, rotation)
-            updateBoxes(box, center, rotation);
+        if (event.target == rotateHandleElem) {
+            cursors.attach.call(this, cursors.types.rotate);
             return;
         }
 
-        updateBoxes(box, center, 0);
+        cursors.attach.call(this, cursors.types.move);
     });
+    boxElem.addEventListener('pointerout', cursors.detach);
 }
 
-function decrementRotation(ev) {
-    let inputElem = ev.target;
-    let value = Number(rotationInputElem.value.trim());
+function setupBox() {
+    boxElem.style.setProperty('--width', boxRect.width / viewportWidth);
+    boxElem.style.setProperty('--height', boxRect.height / viewportHeight);
+    boxElem.style.setProperty('--x', Math.max(0, Math.min(boxRect.x / viewportWidth, 80)));
+    boxElem.style.setProperty('--y', Math.max(0, Math.min(boxRect.y / viewportHeight, 80)));
+}
 
-    if (isNaN(value)) return;
+function initialize() {
+    viewportWidth = window.innerWidth;
+    viewportHeight = window.innerHeight;
 
-    value--;
+    setupCursors();
+    setupBox();
+    setupActions();
 
-    inputElem.value = value;
-    let rotation = Number(inputElem.value);
-    boxList.forEach(function (box, key) {
-        const center = pointsList.item(key);
-        
-        if (key + 1 !== 3) {
-            updateRotation(box, rotation);
-            updateBoxes(box, center, rotation);
-            return;
-        }
-
-        updateBoxes(box, center, 0);
+    window.addEventListener('resize', function () {
+        viewportWidth = window.innerWidth;
+        viewportHeight = window.innerHeight;
+        setupBox();
     });
-}
-
-function getBoundingClientRect(element) {
-    return element.getBoundingClientRect();
-}
-
-function getStyleMap(element) {
-    return element.computedStyleMap();
-}
-
-function getCSSProperty(property, styleMap) {
-    return styleMap.get(property);
-}
-
-/**
- * Update box content data.
- * @param {HTMLElement} box 
- * @param {HTMLElement} center 
- * @param {number} rotation 
- */
-function updateBoxes(box, center, rotation) {
-    box.innerHTML = '';
-    const boxRect = getBoundingClientRect(box);
-    setCentralPoint(center, boxRect);
-    const boxDeatils0 = document.createElement('div');
-    const boxDeatils1 = document.createElement('div');
-    const boxDeatils2 = document.createElement('div');
-    const boxDeatils3 = document.createElement('div');
-    const boxDeatils4 = document.createElement('div');
-    const boxDeatils5 = document.createElement('div');
-    const boxDeatils6 = document.createElement('div');
-    boxDeatils0.textContent = `Rotation: ${rotation}deg`;
-    boxDeatils1.textContent = `\nTop: ${boxRect.top.toFixed(2)}`;
-    boxDeatils2.textContent = `\nLeft: ${boxRect.left.toFixed(2)}`;
-    boxDeatils3.textContent = `\nRight: ${boxRect.right.toFixed(2)}`;
-    boxDeatils4.textContent = `\nBottom: ${boxRect.bottom.toFixed(2)}`;
-    boxDeatils5.textContent = `\nWidth: ${boxRect.width.toFixed(2)}`;
-    boxDeatils6.textContent = `\nHeight: ${boxRect.height.toFixed(2)}`;
-    box.append(boxDeatils0, boxDeatils1, boxDeatils2, boxDeatils3, boxDeatils4, boxDeatils5, boxDeatils6);
-}
-
-/**
- * Takes a DOMRect of an element, to which a rotational 
- * transformation was applied and the applied angle of the rotation, in degress, 
- * returning adjusted client rect.
- * @param {DOMRect} rectangle 
- * @param {number} rotation 
- */
-function adjustClientRect(rectangle, rotation) {
-    const [cx, cy] = calcCentralPointCoords(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
-
-    // Convert the rotation angle to radians
-    const rotationRad = rotation * (Math.PI / 180);
-
-    return new DOMRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
-}
-
-/**
- * Applies rotation matrix to vector points.
- * @param {number} x 
- * @param {number} y 
- * @param {number} cx 
- * @param {number} cy 
- * @param {number} angle 
- * @returns 
- */
-function rotate(x, y, cx, cy, angle) {
-    return [
-        (x - cx) * Math.cos(angle) - (y - cy) * Math.sin(angle) + cx,
-        (x - cx) * Math.sin(angle) + (y - cy) * Math.cos(angle) + cy,
-    ];
-}
-
-/**
- * Calculate central point x, y coordinates.
- * @param {number} x 
- * @param {number} y 
- * @param {number} width 
- * @param {number} height 
- */
-function calcCentralPointCoords(x, y, width, height) {
-    const cx = x + (width / 2);
-    const cy = y + (height / 2);
-    return [cx, cy];
-}
-
-/**
- * Pins a central point to specified x, y coordinates, depending on 
- * a bounding rectangular of a target element.
- * @param {HTMLElement} center 
- * @param {DOMRect} boxRect 
- */
-function setCentralPoint(center, boxRect) {
-    const [cx, cy] = calcCentralPointCoords(boxRect.x, boxRect.y, boxRect.width, boxRect.height);
-    // console.log(cx, cy);
-    center.style.setProperty('--x', `${cx}px`);
-    center.style.setProperty('--y', `${cy}px`);
 }
