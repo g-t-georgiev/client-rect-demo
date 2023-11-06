@@ -103,21 +103,21 @@ function setupActions() {
 
     // Resize
     resizeHandleElem.addEventListener('mousedown', function (event) {
-        if (isDragging) return;
+        if (isDragging || isRotating) return;
         isResizing = true;
         resizeX = event.clientX - resizeX;
         resizeY = event.clientY - resizeY;
         // console.log('Resize start', resizeX, resizeY);
     });
     document.addEventListener('mouseup', function (event) {
-        if (!isResizing || isDragging) return;
+        if (!isResizing || isDragging || isRotationg) return;
         resizeX = Math.min(Math.max(event.clientX - resizeX, 0), viewportWidth - boxRect.x - 8.5);
         resizeY = Math.min(Math.max(event.clientY - resizeY, 0), viewportHeight - boxRect.y - 8.5);
         // console.log('Resize end', resizeX, resizeY);
         isResizing = false;
     });
     document.addEventListener('mousemove', function (event) {
-        if (!isResizing || isDragging) return;
+        if (!isResizing || isDragging || isRotating) return;
         let deltaWidth = Math.min(Math.max(event.clientX - resizeX, 0), viewportWidth - boxRect.x - 8.5);
         let deltaHeight = Math.min(Math.max(event.clientY - resizeY, 0), viewportHeight - boxRect.y - 8.5);
         // console.log('Resizing...', deltaWidth, deltaHeight);
@@ -128,21 +128,21 @@ function setupActions() {
 
     // Drag
     boxElem.addEventListener('mousedown', function (event) {
-        if (isResizing) return;
+        if (isResizing || isRotating) return;
         isDragging = true;
         dragX = event.clientX - dragX;
         dragY = event.clientY - dragY;
         // console.log('Drag start', dragX, dragY);
     });
     document.addEventListener('mouseup', function (event) {
-        if (!isDragging || isResizing) return;
+        if (!isDragging || isResizing || isRotating) return;
         dragX = Math.min(Math.max(event.clientX - dragX, 0), viewportWidth - boxRect.width - 8.5);
         dragY = Math.min(Math.max(event.clientY - dragY, 25), viewportHeight - boxRect.height - 8.5);
         // console.log('Drag end', dragX, dragY);
         isDragging = false;
     });
     document.addEventListener('mousemove', function (event) {
-        if (!isDragging || isResizing) return;
+        if (!isDragging || isResizing || isRotating) return;
         let deltaX = Math.min(Math.max(event.clientX - dragX, 0), viewportWidth - boxRect.width - 8.5);
         let deltaY = Math.min(Math.max(event.clientY - dragY, 25), viewportHeight - boxRect.height - 8.5);
         // console.log('Dragging...', deltaX, deltaY);
