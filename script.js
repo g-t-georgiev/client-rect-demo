@@ -99,7 +99,10 @@ function setupActions() {
         rotateX = event.clientX - rotateX;
         rotateY = event.clientY - rotateY;
         console.log('Rotating...', rotateX, rotateY);
-        
+        let center = { x: boxRect.x + (boxRect.width / 2), y: boxRect.y + (boxRect.height / 2) }
+        let rotationAngle = Math.atan2(rotateY - center.y, rotateX - center.x) * 180 / Math.PI;
+        console.log('Rotation angle', rotationAngle);
+        boxElem.style.setProperty('--rotate', rotationAngle);
     });
 
     // Resize
