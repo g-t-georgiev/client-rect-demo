@@ -88,7 +88,6 @@ function setupActions() {
     document.addEventListener('mousemove', function (event) {
         if (!isResizing || isDragging) return;
 
-        // TODO: Set resize tresholds
         let deltaWidth = Math.max(event.clientX - resizeX, 0);
         let deltaHeight = Math.max(event.clientY - resizeY, 0);
         // console.log('Resizing...', deltaWidth, deltaHeight);
