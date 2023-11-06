@@ -76,33 +76,29 @@ function setupActions() {
     let resizeX = boxRect.width;
     let resizeY = boxRect.height;
 
-    let rotateX = 0;
-    let rotateY = 0;
+    let initialAngle = 0;
 
     // Rotate
     rotateHandleElem.addEventListener('mousedown', function (event) {
         if (isDragging || isResizing) return;
         isRotating = true;
-        rotateX = event.clientX - rotateX;
-        rotateY = event.clientY - rotateY;
-        console.log('Rotate start', rotateX, rotateY);
+        let center = { x: boxRect.x + (boxRect.width / 2), y: boxRect.y + (boxRect.height / 2) }
+        initialAngle = Math.atan2(event.clientY - center.y, event.clientX - center.x) * (180 / Math.PI);
+        console.log('Rotate start', initialAngle);
     });
     rotateHandleElem.addEventListener('mouseup', function (event) {
         if (!isRotating || isResizing || isDragging) return;
-        rotateX = event.clientX - rotateX;
-        rotateY = event.clientY - rotateY;
-        console.log('Rotate end', rotateX, rotateY);
         isRotating = false;
+        console.log('Rotate end', initialAngle);
     });
     rotateHandleElem.addEventListener('mousemove', function (event) {
         if (!isRotating || isResizing || isDragging) return;
-        rotateX = event.clientX - rotateX;
-        rotateY = event.clientY - rotateY;
-        console.log('Rotating...', rotateX, rotateY);
         let center = { x: boxRect.x + (boxRect.width / 2), y: boxRect.y + (boxRect.height / 2) }
-        let rotationAngle = Math.atan2(rotateY - center.y, rotateX - center.x) * 180 / Math.PI;
-        console.log('Rotation angle', rotationAngle);
-        boxElem.style.setProperty('--rotate', rotationAngle);
+        let currentAngle = Math.atan2(event.clientY - center.y, event.clientX - center.x) * (180 / Math.PI);
+        let appliedAngle = currentAngle - initialAngle;
+        console.log('Rotate start', initialAngle, currentAngle);
+        boxElem.style.setProperty('--rotate', appliedAngle);
+        initialAngle = appliedAngle;
     });
 
     // Resize
