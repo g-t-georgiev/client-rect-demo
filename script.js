@@ -76,29 +76,32 @@ function setupActions() {
     let resizeX = boxRect.width;
     let resizeY = boxRect.height;
 
-    let initialAngle = 0;
+    let center = { 
+        x: boxRect.x + (boxRect.width / 2),
+        y: boxRect.y + (boxRect.height / 2)
+    };
+    let rotation = 0;
 
     // Rotate
     rotateHandleElem.addEventListener('mousedown', function (event) {
         if (isDragging || isResizing) return;
         isRotating = true;
-        let center = { x: boxRect.x + (boxRect.width / 2), y: boxRect.y + (boxRect.height / 2) }
-        initialAngle = Math.atan2(event.clientY - center.y, event.clientX - center.x) * (180 / Math.PI);
-        console.log('Rotate start', initialAngle);
     });
-    rotateHandleElem.addEventListener('mouseup', function (event) {
+    document.addEventListener('mouseup', function (event) {
         if (!isRotating || isResizing || isDragging) return;
         isRotating = false;
-        console.log('Rotate end', initialAngle);
     });
-    rotateHandleElem.addEventListener('mousemove', function (event) {
+    document.addEventListener('mousemove', function (event) {
         if (!isRotating || isResizing || isDragging) return;
-        let center = { x: boxRect.x + (boxRect.width / 2), y: boxRect.y + (boxRect.height / 2) }
-        let currentAngle = Math.atan2(event.clientY - center.y, event.clientX - center.x) * (180 / Math.PI);
-        let appliedAngle = currentAngle - initialAngle;
-        console.log('Rotating...', initialAngle, currentAngle, appliedAngle);
-        boxElem.style.setProperty('--rotate', appliedAngle);
-        initialAngle = appliedAngle;
+
+        let angleRad = Math.atan2(
+            event.clientY - center.y,
+            event.clientX - center.x
+        );
+        let angleDeg = angleRad * (180 / Math.PI);
+
+        rotation = angleDeg;
+        boxElem.style.setProperty('--rotate', rotation);
     });
 
     // Resize
@@ -107,20 +110,17 @@ function setupActions() {
         isResizing = true;
         resizeX = event.clientX - resizeX;
         resizeY = event.clientY - resizeY;
-        // console.log('Resize start', resizeX, resizeY);
     });
     document.addEventListener('mouseup', function (event) {
-        if (!isResizing || isDragging || isRotationg) return;
+        if (!isResizing || isDragging || isRotating) return;
         resizeX = Math.min(Math.max(event.clientX - resizeX, 0), viewportWidth - boxRect.x - 8.5);
         resizeY = Math.min(Math.max(event.clientY - resizeY, 0), viewportHeight - boxRect.y - 8.5);
-        // console.log('Resize end', resizeX, resizeY);
         isResizing = false;
     });
     document.addEventListener('mousemove', function (event) {
         if (!isResizing || isDragging || isRotating) return;
         let deltaWidth = Math.min(Math.max(event.clientX - resizeX, 0), viewportWidth - boxRect.x - 8.5);
         let deltaHeight = Math.min(Math.max(event.clientY - resizeY, 0), viewportHeight - boxRect.y - 8.5);
-        // console.log('Resizing...', deltaWidth, deltaHeight);
         updateBoxRect({ width: deltaWidth, height: deltaHeight });
         boxElem.style.setProperty('--width', boxRect.width);
         boxElem.style.setProperty('--height', boxRect.height);
@@ -132,20 +132,17 @@ function setupActions() {
         isDragging = true;
         dragX = event.clientX - dragX;
         dragY = event.clientY - dragY;
-        // console.log('Drag start', dragX, dragY);
     });
     document.addEventListener('mouseup', function (event) {
         if (!isDragging || isResizing || isRotating) return;
         dragX = Math.min(Math.max(event.clientX - dragX, 0), viewportWidth - boxRect.width - 8.5);
         dragY = Math.min(Math.max(event.clientY - dragY, 25), viewportHeight - boxRect.height - 8.5);
-        // console.log('Drag end', dragX, dragY);
         isDragging = false;
     });
     document.addEventListener('mousemove', function (event) {
         if (!isDragging || isResizing || isRotating) return;
         let deltaX = Math.min(Math.max(event.clientX - dragX, 0), viewportWidth - boxRect.width - 8.5);
         let deltaY = Math.min(Math.max(event.clientY - dragY, 25), viewportHeight - boxRect.height - 8.5);
-        // console.log('Dragging...', deltaX, deltaY);
         updateBoxRect({ x: deltaX, y: deltaY });
         boxElem.style.setProperty('--x', boxRect.x);
         boxElem.style.setProperty('--y', boxRect.y);
