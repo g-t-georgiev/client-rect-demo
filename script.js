@@ -119,8 +119,8 @@ function setupActions() {
         // TODO: Set drag tresholds
         // let maxX = viewportWidth - (boxRect.x + boxRect.width - event.clientX);
         // let maxY = viewportHeight - (boxRect.y + boxRect.height - event.clientY);
-        dragX = Math.max(event.clientX - dragX, 0);
-        dragY = Math.max(event.clientY - dragY, 0);
+        dragX = Math.min(Math.max(event.clientX - dragX, 0), viewportWidth - boxRect.width);
+        dragY = Math.min(Math.max(event.clientY - dragY, 25), viewportHeight - boxRect.height);
         console.log('Drag end', dragX, dragY);
         isDragging = false;
     });
@@ -130,8 +130,8 @@ function setupActions() {
         // TODO: Set drag tresholds
         // let maxX = viewportWidth - (boxRect.x + boxRect.width - event.clientX);
         // let maxY = viewportHeight - (boxRect.y + boxRect.height - event.clientY);
-        let deltaX = Math.max(event.clientX - dragX, 0);
-        let deltaY = Math.max(event.clientY - dragY, 0);
+        let deltaX = Math.min(Math.max(event.clientX - dragX, 0), viewportWidth - boxRect.width);
+        let deltaY = Math.min(Math.max(event.clientY - dragY, 25), viewportHeight - boxRect.height);
         console.log('Dragging...', deltaX, deltaY);
         updateBoxRect({ x: deltaX, y: deltaY });
         boxElem.style.setProperty('--x', boxRect.x);
