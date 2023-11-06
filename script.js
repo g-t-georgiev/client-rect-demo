@@ -87,8 +87,8 @@ function setupActions() {
 
     document.addEventListener('mouseup', function (event) {
         if (!isResizing || isDragging) return;
-        resizeX = Math.max(event.clientX - resizeX, 0);
-        resizeY = Math.max(event.clientY - resizeY, 0);
+        resizeX = Math.min(Math.max(event.clientX - resizeX, 0), viewportWidth - boxRect.x - 8.5);
+        resizeY = Math.min(Math.max(event.clientY - resizeY, 0), viewportHeight - boxRect.y - 8.5);
         // console.log('Resize end', resizeX, resizeY);
         isResizing = false;
     });
