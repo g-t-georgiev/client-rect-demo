@@ -122,7 +122,7 @@ function setupActions() {
         let maxY = viewportHeight - (boxRect.y + boxRect.height - event.clientY);
         dragX = Math.min(Math.max(event.clientX - dragX, minX), maxX);
         dragY = Math.min(Math.max(event.clientY - dragY, minY), maxY);
-        // console.log('Drag end', dragX, dragY);
+        console.log('Drag end', dragX, dragY);
         isDragging = false;
     });
     document.addEventListener('mousemove', function (event) {
@@ -135,7 +135,7 @@ function setupActions() {
         let maxY = viewportHeight - (boxRect.y + boxRect.height - event.clientY);
         let deltaX = Math.min(Math.max(event.clientX - dragX, minX), maxX);
         let deltaY = Math.min(Math.max(event.clientY - dragY, minY), maxY);
-        // console.log('Dragging...', deltaX, deltaY);
+        console.log('Dragging...', deltaX, deltaY);
         updateBoxRect({ x: deltaX, y: deltaY });
         boxElem.style.setProperty('--x', boxRect.x);
         boxElem.style.setProperty('--y', boxRect.y);
