@@ -98,7 +98,9 @@ function setupActions() {
 
         let deltaWidth = Math.max(event.clientX - resizeX, 0);
         let deltaHeight = Math.max(event.clientY - resizeY, 0);
-        console.log('Resizing...', deltaWidth, deltaHeight);
+        console.log('Max width', viewportWidth - (boxRect.x + boxRect.width + 8.5));
+        consol.log('Max height', viewportHeight - (boxRect.y + boxRect.height + 8.5));
+        // console.log('Resizing...', deltaWidth, deltaHeight);
         updateBoxRect({ width: deltaWidth, height: deltaHeight });
         boxElem.style.setProperty('--width', boxRect.width);
         boxElem.style.setProperty('--height', boxRect.height);
