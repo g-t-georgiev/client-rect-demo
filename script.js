@@ -96,7 +96,7 @@ function setupActions() {
         let center = { x: boxRect.x + (boxRect.width / 2), y: boxRect.y + (boxRect.height / 2) }
         let currentAngle = Math.atan2(event.clientY - center.y, event.clientX - center.x) * (180 / Math.PI);
         let appliedAngle = currentAngle - initialAngle;
-        console.log('Rotate start', initialAngle, currentAngle);
+        console.log('Rotating...', initialAngle, currentAngle, appliedAngle);
         boxElem.style.setProperty('--rotate', appliedAngle);
         initialAngle = appliedAngle;
     });
