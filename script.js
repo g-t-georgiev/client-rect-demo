@@ -85,23 +85,23 @@ function setupActions() {
         // console.log('Resize start', resizeX, resizeY);
     });
 
-    document.addEventListener('mousemove', function (event) {
-        if (!isResizing || isDragging) return;
-
-        let deltaWidth = Math.max(event.clientX - resizeX, 0);
-        let deltaHeight = Math.max(event.clientY - resizeY, 0);
-        // console.log('Resizing...', deltaWidth, deltaHeight);
-        updateBoxRect({ width: deltaWidth, height: deltaHeight });
-        boxElem.style.setProperty('--width', boxRect.width);
-        boxElem.style.setProperty('--height', boxRect.height);
-    });
-
     document.addEventListener('mouseup', function (event) {
         if (!isResizing || isDragging) return;
         resizeX = Math.max(event.clientX - resizeX, 0);
         resizeY = Math.max(event.clientY - resizeY, 0);
         // console.log('Resize end', resizeX, resizeY);
         isResizing = false;
+    });
+
+    document.addEventListener('mousemove', function (event) {
+        if (!isResizing || isDragging) return;
+
+        let deltaWidth = Math.max(event.clientX - resizeX, 0);
+        let deltaHeight = Math.max(event.clientY - resizeY, 0);
+        console.log('Resizing...', deltaWidth, deltaHeight);
+        updateBoxRect({ width: deltaWidth, height: deltaHeight });
+        boxElem.style.setProperty('--width', boxRect.width);
+        boxElem.style.setProperty('--height', boxRect.height);
     });
 
     // Dragging action
