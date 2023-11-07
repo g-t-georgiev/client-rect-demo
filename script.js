@@ -7,7 +7,6 @@ const rotateHandleElem = document.querySelector('[data-box-rotate-handle]');
 /** @type HTMLElement */
 const resizeHandleElem = document.querySelector('[data-box-resize-handle]');
 
-const queue = new Set();
 const cursors = {
     types: {
         move: document.querySelector('[data-cursor="move"]'),
@@ -35,11 +34,7 @@ const cursors = {
      * @param {PointerEvent} event
      */
     detach(event) {
-        if (!cursors.current) return;
-
-        if (cursors.current.classList.contains('active')) {
-            queue.add(cursors.detach);
-        }
+        if (!cursors.current || cursors.current.classList.contains('active')) return;
 
         cursors.current.remove();
         cursors.current = null;
@@ -105,7 +100,7 @@ function initRotatingActions() {
         totalAngle += rotationAngle;
         isRotating = false;
         toggleCursor(cursors.types.rotate, false);
-        if (queue.has(cursors.detach)) cursors.detach();
+        cursors.detach();
     });
     document.addEventListener('mousemove', function (event) {
         if (!isRotating || isResizing || isDragging) return;
@@ -137,7 +132,7 @@ function initResizingActions() {
         y = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - 8.5);
         isResizing = false;
         toggleCursor(cursors.types.resize, false);
-        if (queue.has(cursors.detach)) cursors.detach();
+        cursors.detach();
     });
     document.addEventListener('mousemove', function (event) {
         if (!isResizing || isDragging || isRotating) return;
@@ -169,7 +164,7 @@ function initDraggingActions() {
         y = Math.min(Math.max(event.clientY - y, 25), viewportHeight - boxRect.height - 8.5);
         isDragging = false;
         toggleCursor(cursors.types.move, false);
-        if (queue.has(cursors.detach)) cursors.detach();
+        cursors.detach();
     });
     document.addEventListener('mousemove', function (event) {
         if (!isDragging || isResizing || isRotating) return;
