@@ -43,7 +43,7 @@ function initRotatingActions() {
         let y = event.clientY - center.y;
         startAngle = R2D * Math.atan2(y, x);
         isRotating = true;
-        boxElem.classList.add('active');
+        boxElem.classList.add('active', 'rotate');
         document.body.style.setProperty('--cursor', 'grabbing');
     });
     document.addEventListener('mouseup', function (event) {
@@ -51,7 +51,7 @@ function initRotatingActions() {
         event.preventDefault();
         totalAngle += rotationAngle;
         isRotating = false;
-        boxElem.classList.remove('active');
+        boxElem.classList.remove('active', 'rotate');
         document.body.style.removeProperty('--cursor');
     });
     document.addEventListener('mousemove', function (event) {
@@ -75,7 +75,7 @@ function initResizingActions() {
         x = event.clientX - x;
         y = event.clientY - y;
         isResizing = true;
-        boxElem.classList.add('active');
+        boxElem.classList.add('active', 'resize');
         document.body.style.setProperty('--cursor', 'nwse-resize');
     });
     document.addEventListener('mouseup', function (event) {
@@ -84,7 +84,7 @@ function initResizingActions() {
         x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - 8.5);
         y = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - 8.5);
         isResizing = false;
-        boxElem.classList.remove('active');
+        boxElem.classList.remove('active', 'resize');
         document.body.style.removeProperty('--cursor');
     });
     document.addEventListener('mousemove', function (event) {
@@ -108,7 +108,7 @@ function initDraggingActions() {
         x = event.clientX - x;
         y = event.clientY - y;
         isDragging = true;
-        boxElem.classList.add('active');
+        boxElem.classList.add('active', 'move');
         document.body.style.setProperty('--cursor', 'move');
     });
     document.addEventListener('mouseup', function (event) {
@@ -117,7 +117,7 @@ function initDraggingActions() {
         x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - 8.5);
         y = Math.min(Math.max(event.clientY - y, 25), viewportHeight - boxRect.height - 8.5);
         isDragging = false;
-        boxElem.classList.remove('active');
+        boxElem.classList.remove('active', 'move');
         document.body.style.removeProperty('--cursor');
     });
     document.addEventListener('mousemove', function (event) {
