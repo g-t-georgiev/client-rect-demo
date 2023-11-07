@@ -11,7 +11,7 @@ body {
     margin: 0;
     overflow: hidden;
     font-size: 0;
-    cursor: var(--cursor), default;
+    cursor: var(--cursor, default);
 }
 
 /* Box */
@@ -27,7 +27,7 @@ body {
     border: 1px solid rgb(0 0 0 / 1);
     transform-origin: center;
     transform: rotateZ(calc(var(--rotate, 0) * 1deg));
-    cursor: var(--cursor), move;
+    cursor: var(--cursor, move);
 }
 
 /* Box resize handle */
@@ -44,7 +44,7 @@ body {
     border: 1px solid rgb(0 0 0 / 1);
     transform-origin: center;
     border-radius: 50%;
-    cursor: var(--cursor), nwse-resize;
+    cursor: var(--cursor, nwse-resize);
     -webkit-user-drag: none;
     -webkit-user-select: none;
     user-select: none;
@@ -85,7 +85,7 @@ body {
     transform-origin: center;
     transform: translate(-50%, 0);
     border-radius: 50%;
-    cursor: var(--cursor), grab;
+    cursor: var(--cursor, grab);
     -webkit-user-drag: none;
     -webkit-user-select: none;
     user-select: none;
