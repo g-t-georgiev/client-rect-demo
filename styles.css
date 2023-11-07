@@ -92,7 +92,7 @@ body {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 250%;
+    width: 290%;
     aspect-ratio: 1 / 1;
     border-radius: 50%;
     background-color: transparent;
@@ -146,10 +146,10 @@ body {
 
 @media screen and (min-width: 1025px) {
     .box-rotate-handle:hover::before {
-        background-color: rgba(0 0 0 / .15);
+        background-color: rgba(0 0 0 / .05);
     }
 
     .box-resize-handle:hover::before {
-        background-color: rgba(0 0 0 / .15);
+        background-color: rgba(0 0 0 / .05);
     }
 }
