@@ -65,7 +65,7 @@ body {
     z-index: 1;
 }
 
-.box.active .box-resize-handle::before {
+.box.active.resize .box-resize-handle::before {
     background-color: rgba(0 0 0 / .05);
 }
 
@@ -106,7 +106,7 @@ body {
     z-index: 1;
 }
 
-.box.active .box-rotate-handle::before {
+.box.active.rotate .box-rotate-handle::before {
     background-color: rgba(0 0 0 / .05);
 }
 
