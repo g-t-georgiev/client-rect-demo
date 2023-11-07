@@ -39,7 +39,7 @@ body {
     left: calc(100% - (var(--width) / 2));
     width: var(--width);
     aspect-ratio: 1 / 1;
-    background-color: rgb(0 123 255 / .55);
+    background-color: rgb(0 123 255 / 1);
     border: 1px solid rgb(0 0 0 / 1);
     transform-origin: center;
     border-radius: 50%;
