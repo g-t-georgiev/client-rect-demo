@@ -21,21 +21,26 @@ const cursors = {
         if (!cursor) return;
 
         if (cursors.current) {
-            if (cursor.current.classList.contains('active')) return;
+            if (cursors.current.classList.contains('active')) return;
             cursors.current.replaceWith(cursor);
+            cursors.current.classList.add('in-scope');
             return;
         }
 
         document.body.append(cursor);
         cursors.current = cursor;
+        cursors.current.classList.add('in-scope');
     },
     /**
      * Detach cursor
      * @param {PointerEvent} event
      */
     detach(event) {
-        if (!cursors.current || cursors.current.classList.contains('active')) return;
-
+        if (!cursors.current) return;
+        
+        cursors.current.classList.remove('in-scope');
+        if (cursors.current.classList.contains('active')) return;
+        
         cursors.current.remove();
         cursors.current = null;
     },
@@ -100,7 +105,7 @@ function initRotatingActions() {
         totalAngle += rotationAngle;
         isRotating = false;
         toggleCursor(cursors.types.rotate, false);
-        cursors.detach();
+        if (!cursors.current.classList.contains('in-scope')) cursors.detach();
     });
     document.addEventListener('mousemove', function (event) {
         if (!isRotating || isResizing || isDragging) return;
@@ -132,7 +137,7 @@ function initResizingActions() {
         y = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - 8.5);
         isResizing = false;
         toggleCursor(cursors.types.resize, false);
-        cursors.detach();
+        if (!cursors.current.classList.contains('in-scope')) cursors.detach();
     });
     document.addEventListener('mousemove', function (event) {
         if (!isResizing || isDragging || isRotating) return;
@@ -164,7 +169,7 @@ function initDraggingActions() {
         y = Math.min(Math.max(event.clientY - y, 25), viewportHeight - boxRect.height - 8.5);
         isDragging = false;
         toggleCursor(cursors.types.move, false);
-        cursors.detach();
+        if (!cursors.current.classList.contains('in-scope')) cursors.detach();
     });
     document.addEventListener('mousemove', function (event) {
         if (!isDragging || isResizing || isRotating) return;
@@ -178,7 +183,7 @@ function initDraggingActions() {
 }
 
 function setupCursors() {
-    boxElem.addEventListener('pointermove', cursors.move);
+    document.addEventListener('pointermove', cursors.move);
     boxElem.addEventListener('pointerover', function (event) {
         // console.log(event.target);
         if (event.target == resizeHandleElem) {
