@@ -146,10 +146,10 @@ body {
 
 @media screen and (min-width: 1025px) {
     .box-rotate-handle:hover::before {
-        background-color: rgba(255 0 0 / .5);
+        background-color: rgba(0 0 0 / .15);
     }
 
     .box-resize-handle:hover::before {
-        background-color: rgba(138 44 226 / .5);
+        background-color: rgba(0 0 0 / .15);
     }
 }
