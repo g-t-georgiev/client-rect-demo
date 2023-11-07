@@ -21,6 +21,7 @@ const cursors = {
         if (!cursor) return;
 
         if (cursors.current) {
+            if (cursor.current.classList.contains('active')) return;
             cursors.current.replaceWith(cursor);
             return;
         }
@@ -85,6 +86,7 @@ function initRotatingActions() {
     rotateHandleElem.addEventListener('mousedown', function (event) {
         if (isDragging || isResizing) return;
         event.preventDefault();
+        toggleCursor(cursors.types.rotate, true);
         center.x = boxRect.x + (boxRect.width / 2);
         center.y = boxRect.y + (boxRect.height / 2);
         let x = event.clientX - center.x;
@@ -95,6 +97,7 @@ function initRotatingActions() {
     document.addEventListener('mouseup', function (event) {
         if (!isRotating || isResizing || isDragging) return;
         event.preventDefault();
+        toggleCursor(cursors.types.rotate, false);
         totalAngle += rotationAngle;
         isRotating = false;
     });
@@ -116,6 +119,7 @@ function initResizingActions() {
     resizeHandleElem.addEventListener('mousedown', function (event) {
         if (isDragging || isRotating) return;
         event.preventDefault();
+        toggleCursor(cursors.types.resize, true);
         x = event.clientX - x;
         y = event.clientY - y;
         isResizing = true;
@@ -123,6 +127,7 @@ function initResizingActions() {
     document.addEventListener('mouseup', function (event) {
         if (!isResizing || isDragging || isRotating) return;
         event.preventDefault();
+        toggleCursor(cursors.types.resize, false);
         x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - 8.5);
         y = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - 8.5);
         isResizing = false;
@@ -145,6 +150,7 @@ function initDraggingActions() {
     boxElem.addEventListener('mousedown', function (event) {
         if (isResizing || isRotating) return;
         event.preventDefault();
+        toggleCursor(cursors.types.move, true);
         x = event.clientX - x;
         y = event.clientY - y;
         isDragging = true;
@@ -152,6 +158,7 @@ function initDraggingActions() {
     document.addEventListener('mouseup', function (event) {
         if (!isDragging || isResizing || isRotating) return;
         event.preventDefault();
+        toggleCursor(cursors.types.move, false);
         x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - 8.5);
         y = Math.min(Math.max(event.clientY - y, 25), viewportHeight - boxRect.height - 8.5);
         isDragging = false;
@@ -184,6 +191,11 @@ function setupCursors() {
         cursors.attach.call(this, cursors.types.move);
     });
     boxElem.addEventListener('pointerout', cursors.detach);
+}
+
+function toggleCursor(cursor, flag = false) {
+    if (!cursor) return;
+    cursor.classList.toggle('active', flag);
 }
 
 function setupBox() {
