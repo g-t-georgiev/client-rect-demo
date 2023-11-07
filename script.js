@@ -70,79 +70,97 @@ cursors.types.rotate.remove();
 initialize();
 
 function setupActions() {
-    let dragX = boxRect.x;
-    let dragY = boxRect.y;
+    initDraggingActions();
+    initResizingActions();
+    initRotatingActions();
+}
 
-    let resizeX = boxRect.width;
-    let resizeY = boxRect.height;
-
-    let center = { 
-        x: boxRect.x + (boxRect.width / 2),
-        y: boxRect.y + (boxRect.height / 2)
-    };
-    let rotation = 0;
-
+function initRotatingActions() {
+    const R2D = 180 / Math.PI;
+    let center = { x: 0, y: 0 };
+    let totalAngle = 0;
+    let startAngle = 0;
+    let rotationAngle = 0;
     // Rotate
     rotateHandleElem.addEventListener('mousedown', function (event) {
         if (isDragging || isResizing) return;
+        event.preventDefault();
+        center.x = boxRect.x + (boxRect.width / 2);
+        center.y = boxRect.y + (boxRect.height / 2);
+        let x = event.clientX - center.x;
+        let y = event.clientY - center.y;
+        startAngle = R2D * Math.atan2(y, x);
         isRotating = true;
     });
     document.addEventListener('mouseup', function (event) {
         if (!isRotating || isResizing || isDragging) return;
+        event.preventDefault();
+        totalAngle += rotationAngle;
         isRotating = false;
     });
     document.addEventListener('mousemove', function (event) {
         if (!isRotating || isResizing || isDragging) return;
-
-        let angleRad = Math.atan2(
-            event.clientY - center.y,
-            event.clientX - center.x
-        );
-        let angleDeg = angleRad * (180 / Math.PI);
-
-        rotation = angleDeg;
-        boxElem.style.setProperty('--rotate', rotation);
+        event.preventDefault();
+        let x = event.clientX - center.x;
+        let y = event.clientY - center.y;
+        let currentAngle = R2D * Math.atan2(y, x);
+        rotationAngle = currentAngle - startAngle;
+        boxElem.style.setProperty('--rotate', totalAngle + rotationAngle);
     });
+}
 
+function initResizingActions() {
+    let x = boxRect.width;
+    let y = boxRect.height;
     // Resize
     resizeHandleElem.addEventListener('mousedown', function (event) {
         if (isDragging || isRotating) return;
+        event.preventDefault();
+        x = event.clientX - x;
+        y = event.clientY - y;
         isResizing = true;
-        resizeX = event.clientX - resizeX;
-        resizeY = event.clientY - resizeY;
     });
     document.addEventListener('mouseup', function (event) {
         if (!isResizing || isDragging || isRotating) return;
-        resizeX = Math.min(Math.max(event.clientX - resizeX, 0), viewportWidth - boxRect.x - 8.5);
-        resizeY = Math.min(Math.max(event.clientY - resizeY, 0), viewportHeight - boxRect.y - 8.5);
+        event.preventDefault();
+        x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - 8.5);
+        y = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - 8.5);
         isResizing = false;
     });
     document.addEventListener('mousemove', function (event) {
         if (!isResizing || isDragging || isRotating) return;
-        let deltaWidth = Math.min(Math.max(event.clientX - resizeX, 0), viewportWidth - boxRect.x - 8.5);
-        let deltaHeight = Math.min(Math.max(event.clientY - resizeY, 0), viewportHeight - boxRect.y - 8.5);
-        updateBoxRect({ width: deltaWidth, height: deltaHeight });
+        event.preventDefault();
+        let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - 8.5);
+        let deltaY = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - 8.5);
+        updateBoxRect({ width: deltaX, height: deltaY });
         boxElem.style.setProperty('--width', boxRect.width);
         boxElem.style.setProperty('--height', boxRect.height);
     });
+}
 
+function initDraggingActions() {
+    let x = boxRect.x;
+    let y = boxRect.y;
     // Drag
     boxElem.addEventListener('mousedown', function (event) {
         if (isResizing || isRotating) return;
+        event.preventDefault();
+        x = event.clientX - x;
+        y = event.clientY - y;
         isDragging = true;
-        dragX = event.clientX - dragX;
-        dragY = event.clientY - dragY;
     });
     document.addEventListener('mouseup', function (event) {
         if (!isDragging || isResizing || isRotating) return;
-        dragX = Math.min(Math.max(event.clientX - dragX, 0), viewportWidth - boxRect.width - 8.5);
-        dragY = Math.min(Math.max(event.clientY - dragY, 25), viewportHeight - boxRect.height - 8.5);
+        event.preventDefault();
+        x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - 8.5);
+        y = Math.min(Math.max(event.clientY - y, 25), viewportHeight - boxRect.height - 8.5);
         isDragging = false;
     });
     document.addEventListener('mousemove', function (event) {
         if (!isDragging || isResizing || isRotating) return;
-        let deltaX = Math.min(Math.max(event.clientX - dragX, 0), viewportWidth - boxRect.width - 8.5);
-        let deltaY = Math.min(Math.max(event.clientY - dragY, 25), viewportHeight - boxRect.height - 8.5);
+        event.preventDefault();
+        let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - 8.5);
+        let deltaY = Math.min(Math.max(event.clientY - y, 25), viewportHeight - boxRect.height - 8.5);
         updateBoxRect({ x: deltaX, y: deltaY });
         boxElem.style.setProperty('--x', boxRect.x);
         boxElem.style.setProperty('--y', boxRect.y);
