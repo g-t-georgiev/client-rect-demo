@@ -11,7 +11,8 @@ const boxRect = {
     width: 150,
     height: 150,
     x: 350,
-    y: 350,
+    y: 350, 
+    rotation: 0
 }
 
 let viewportWidth = window.innerWidth;
@@ -30,9 +31,8 @@ function setupActions() {
 function initRotatingActions() {
     const R2D = 180 / Math.PI;
     let center = { x: 0, y: 0 };
-    let totalAngle = 0;
-    let startAngle = 0;
-    let rotationAngle = 0;
+    let startAngle;
+    let prevAngle;
     // Rotate
     rotateHandleElem.addEventListener('mousedown', function (event) {
         if (isDragging || isResizing) return;
@@ -41,7 +41,7 @@ function initRotatingActions() {
         center.y = boxRect.y + (boxRect.height / 2);
         let x = event.clientX - center.x;
         let y = event.clientY - center.y;
-        startAngle = R2D * Math.atan2(y, x);
+        startAngle = Math.round(R2D * Math.atan2(y, x));
         isRotating = true;
         boxElem.classList.add('active', 'rotate');
         document.body.style.setProperty('--cursor', 'grabbing');
@@ -49,19 +49,25 @@ function initRotatingActions() {
     document.addEventListener('mouseup', function (event) {
         if (!isRotating || isResizing || isDragging) return;
         event.preventDefault();
-        totalAngle += rotationAngle;
+        updateBoxRect({ rotation: prevAngle });
         isRotating = false;
         boxElem.classList.remove('active', 'rotate');
         document.body.style.removeProperty('--cursor');
+        // Attach bounding rect
+        if (boxRect.rotation != 0) {
+            let boundingRect = boxElem.getBoundingClientRect();
+            attachBoundingRect(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
+        }
     });
     document.addEventListener('mousemove', function (event) {
         if (!isRotating || isResizing || isDragging) return;
         event.preventDefault();
         let x = event.clientX - center.x;
         let y = event.clientY - center.y;
-        let currentAngle = R2D * Math.atan2(y, x);
-        rotationAngle = currentAngle - startAngle;
-        boxElem.style.setProperty('--rotate', totalAngle + rotationAngle);
+        let currentAngle = Math.round(R2D * Math.atan2(y, x));
+        let deltaAngle = (currentAngle - startAngle) % 360;
+        prevAngle = (boxRect.rotation + deltaAngle) % 360;
+        boxElem.style.setProperty('--rotation', prevAngle);
     });
 }
 
@@ -136,6 +142,7 @@ function setupBox() {
     boxElem.style.setProperty('--height', boxRect.height);
     boxElem.style.setProperty('--x', boxRect.x);
     boxElem.style.setProperty('--y', boxRect.y);
+    boxElem.style.setProperty('--rotation', boxRect.rotation);
 }
 
 /**
@@ -145,13 +152,15 @@ function setupBox() {
  * @param {number | undefined} rect.y 
  * @param {number | undefined} rect.width 
  * @param {number | undefined} rect.height 
- * @returns {{ x: number, y: number, width: number, height: number }}
+ * @param {number | undefined} rect.rotation 
  */
-function updateBoxRect({ x, y, width, height }) {
-    if (x && typeof x == 'number') boxRect.x = x;
-    if (y && typeof y == 'number') boxRect.y = y;
-    if (width && typeof width == 'number') boxRect.width = width;
-    if (height && typeof height == 'number') boxRect.height = height;
+function updateBoxRect({ x, y, width, height, rotation }) {
+    if (x != null && typeof x == 'number') boxRect.x = x;
+    if (y != null && typeof y == 'number') boxRect.y = y;
+    if (width != null && typeof width == 'number') boxRect.width = width;
+    if (height != null && typeof height == 'number') boxRect.height = height;
+    if (rotation != null && typeof rotation == 'number') boxRect.rotation = rotation;
+    return boxRect;
 }
 
 function initialize() {
@@ -165,4 +174,18 @@ function initialize() {
         viewportWidth = window.innerWidth;
         viewportHeight = window.innerHeight;
     });
+}
+
+function attachBoundingRect(x, y, width, height) {
+    let boundingRectElem = document.createElement('div');
+    boundingRectElem.classList.add('bounding-rect');
+    boundingRectElem.style.setProperty('--width', width);
+    boundingRectElem.style.setProperty('--height', height);
+    boundingRectElem.style.setProperty('--y', y);
+    boundingRectElem.style.setProperty('--x', x);
+    document.body.append(boundingRectElem);
+    let timeoutId = setTimeout(function() {
+        clearTimeout(timeoutId);
+        boundingRectElem.remove();
+    }, 1000);
 }
