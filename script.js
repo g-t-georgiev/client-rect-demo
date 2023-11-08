@@ -6,6 +6,9 @@ const boxElem = document.querySelector('[data-box]');
 const rotateHandleElem = document.querySelector('[data-box-rotate-handle]');
 /** @type HTMLElement */
 const resizeHandleElem = document.querySelector('[data-box-resize-handle]');
+/** @type HTMLElement */
+const boxInfoElem = document.querySelector('[data-box-info]');
+const boxInfoLabels = boxInfoElem.children;
 
 const boxRect = {
     width: 150,
@@ -49,6 +52,7 @@ function initRotatingActions() {
     document.addEventListener('mouseup', function (event) {
         if (!isRotating || isResizing || isDragging) return;
         event.preventDefault();
+        updateBoxInfo({ rotation: prevAngle });
         updateBoxRect({ rotation: prevAngle });
         isRotating = false;
         boxElem.classList.remove('active', 'rotate');
@@ -67,6 +71,7 @@ function initRotatingActions() {
         let currentAngle = Math.round(R2D * Math.atan2(y, x));
         let deltaAngle = (currentAngle - startAngle) % 360;
         prevAngle = (boxRect.rotation + deltaAngle) % 360;
+        updateBoxInfo({ rotation: prevAngle });
         boxElem.style.setProperty('--rotation', prevAngle);
     });
 }
@@ -99,6 +104,7 @@ function initResizingActions() {
         let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - 8.5);
         let deltaY = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - 8.5);
         updateBoxRect({ width: deltaX, height: deltaY });
+        updateBoxInfo({ width: boxRect.width, height: boxRect.height });
         boxElem.style.setProperty('--width', boxRect.width);
         boxElem.style.setProperty('--height', boxRect.height);
     });
@@ -132,6 +138,7 @@ function initDraggingActions() {
         let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - 8.5);
         let deltaY = Math.min(Math.max(event.clientY - y, 25), viewportHeight - boxRect.height - 8.5);
         updateBoxRect({ x: deltaX, y: deltaY });
+        updateBoxInfo({ x: boxRect.x, y: boxRect.y });
         boxElem.style.setProperty('--x', boxRect.x);
         boxElem.style.setProperty('--y', boxRect.y);
     });
@@ -143,6 +150,24 @@ function setupBox() {
     boxElem.style.setProperty('--x', boxRect.x);
     boxElem.style.setProperty('--y', boxRect.y);
     boxElem.style.setProperty('--rotation', boxRect.rotation);
+    updateBoxInfo(boxRect);
+}
+
+/**
+ * Update box info labels.
+ * @param {object} data 
+ * @param {number | undefined} data.x 
+ * @param {number | undefined} data.y 
+ * @param {number | undefined} data.width 
+ * @param {number | undefined} data.height 
+ * @param {number | undefined} data.rotation
+ */
+function updateBoxInfo({ x, y, width, height, rotation }) {
+    if (x != null && typeof x == 'number') boxInfoLabels.item(0).textContent = x;
+    if (y != null && typeof y == 'number') boxInfoLabels.item(1).textContent = y;
+    if (width != null && typeof width == 'number') boxInfoLabels.item(2).textContent = width;
+    if (height != null && typeof height == 'number') boxInfoLabels.item(3).textContent = height;
+    if (rotation != null && typeof rotation == 'number') boxInfoLabels.item(4).textContent = rotation;
 }
 
 /**
