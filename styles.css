@@ -127,3 +127,53 @@ body {
     border: 1.5px dashed rgba(255 0 0 / 1);
     pointer-events: none;
 }
+
+.box-data {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: -1;
+    font-family: Consolas, monospace;
+    font-size: 1.35rem;
+    font-weight: 500;
+}
+
+:is(
+    .box-data-x,
+    .box-data-y,
+    .box-data-width,
+    .box-data-height,
+    .box-data-rotation
+)::before {
+    text-transform: capitalize;
+    margin-right: 0.3rem;
+}
+
+.box-data-x::before {
+    content: 'x:';
+}
+.box-data-y::before {
+    content: 'y:';
+}
+.box-data-width::before {
+    content: 'w:';
+}
+.box-data-height::before {
+    content: 'h:';
+}
+.box-data-rotation::before {
+    content: 'r:';
+}
+
+:is(
+    .box-data-x,
+    .box-data-y,
+    .box-data-width,
+    .box-data-height
+)::after {
+    content: 'px';
+}
+
+.box-data-rotation::after {
+    content: '\00b0';
+}
