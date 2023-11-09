@@ -1,3 +1,7 @@
+const RESIZE_HANDLE_WIDTH = 17;
+const ROTATE_HANLE_WIDTH = 12;
+const ROTATE_HANLE_HEIGHT = 13;
+
 /** @type HTMLElement */
 const rectElem = document.querySelector('[data-rect]');
 /** @type HTMLElement */
@@ -92,8 +96,8 @@ function initResizingActions() {
     document.addEventListener('mouseup', function (event) {
         if (!isResizing || isDragging || isRotating) return;
         event.preventDefault();
-        x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - 8.5);
-        y = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - 8.5);
+        x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2));
+        y = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2));
         isResizing = false;
         boxElem.classList.remove('active', 'resize');
         document.body.style.removeProperty('--cursor');
@@ -101,8 +105,8 @@ function initResizingActions() {
     document.addEventListener('mousemove', function (event) {
         if (!isResizing || isDragging || isRotating) return;
         event.preventDefault();
-        let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - 8.5);
-        let deltaY = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - 8.5);
+        let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2));
+        let deltaY = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2));
         updateBoxRect({ width: deltaX, height: deltaY });
         updateBoxInfo({ width: boxRect.width, height: boxRect.height });
         boxElem.style.setProperty('--width', boxRect.width);
@@ -126,8 +130,8 @@ function initDraggingActions() {
     document.addEventListener('mouseup', function (event) {
         if (!isDragging || isResizing || isRotating) return;
         event.preventDefault();
-        x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - 8.5);
-        y = Math.min(Math.max(event.clientY - y, 25), viewportHeight - boxRect.height - 8.5);
+        x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
+        y = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
         isDragging = false;
         boxElem.classList.remove('active', 'move');
         document.body.style.removeProperty('--cursor');
@@ -135,8 +139,8 @@ function initDraggingActions() {
     document.addEventListener('mousemove', function (event) {
         if (!isDragging || isResizing || isRotating) return;
         event.preventDefault();
-        let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - 8.5);
-        let deltaY = Math.min(Math.max(event.clientY - y, 25), viewportHeight - boxRect.height - 8.5);
+        let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
+        let deltaY = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
         updateBoxRect({ x: deltaX, y: deltaY });
         updateBoxInfo({ x: boxRect.x, y: boxRect.y });
         boxElem.style.setProperty('--x', boxRect.x);
