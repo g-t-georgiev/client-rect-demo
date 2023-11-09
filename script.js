@@ -132,6 +132,8 @@ function initResizingActions() {
         event = normalize(event);
         let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2));
         let deltaY = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2));
+        deltaX = Math.round(deltaX);
+        deltaY = Math.round(deltaY);
         updateBoxRect({ width: deltaX, height: deltaY });
         updateBoxInfo({ width: boxRect.width, height: boxRect.height });
         boxElem.style.setProperty('--width', boxRect.width);
@@ -178,6 +180,8 @@ function initDraggingActions() {
         event = normalize(event);
         let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
         let deltaY = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
+        deltaX = Math.round(deltaX);
+        deltaY = Math.round(deltaY);
         updateBoxRect({ x: deltaX, y: deltaY });
         updateBoxInfo({ x: boxRect.x, y: boxRect.y });
         boxElem.style.setProperty('--x', boxRect.x);
