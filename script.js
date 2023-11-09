@@ -17,8 +17,8 @@ const boxInfoLabels = boxInfoElem.children;
 const boxRect = {
     width: 150,
     height: 150,
-    x: 350,
-    y: 350, 
+    x: 100,
+    y: 200, 
     rotation: 0
 }
 
@@ -93,7 +93,7 @@ function initRotatingActions() {
     }
 
     rotateHandleElem.addEventListener('mousedown', rotateStart);
-    rotateHandleElem.addEventListener('touchstart', rotateStart, { passive: false });
+    rotateHandleElem.addEventListener('touchstart', rotateStart);
 
     document.addEventListener('mouseup', rotateStop);
     document.addEventListener('touchend', rotateStop, { passive: false });
@@ -139,7 +139,7 @@ function initResizingActions() {
     }
 
     resizeHandleElem.addEventListener('mousedown', resizeStart);
-    resizeHandleElem.addEventListener('touchstart', resizeStart, { passive: false });
+    resizeHandleElem.addEventListener('touchstart', resizeStart);
 
     document.addEventListener('mouseup', resizeStop);
     document.addEventListener('touchend', resizeStop, { passive: false });
@@ -185,7 +185,7 @@ function initDraggingActions() {
     }
 
     boxElem.addEventListener('mousedown', dragStart);
-    boxElem.addEventListener('touchstart', dragStart, { passive: false });
+    boxElem.addEventListener('touchstart', dragStart);
 
     document.addEventListener('mouseup', dragStop);
     document.addEventListener('touchend', dragStop, { passive: false });
