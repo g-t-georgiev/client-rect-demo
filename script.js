@@ -34,7 +34,7 @@ initialize();
  * @param {PointerEvent | MouseEvent | TouchEvent} event 
  */
 function normalize(event) {
-    return event instanceof TouchEvent ? event.touches[0] : event;
+    return event instanceof TouchEvent ? event.changedTouches[0] : event;
 }
 
 function setupActions() {
@@ -51,8 +51,8 @@ function initRotatingActions() {
 
     function rotateStart(event) {
         if (isDragging || isResizing) return;
-        event = normalize(event);
         event.preventDefault();
+        event = normalize(event);
         center = {
             x: boxRect.x + (boxRect.width / 2),
             y: boxRect.y + (boxRect.height / 2)
@@ -66,8 +66,8 @@ function initRotatingActions() {
     }
     function rotateStop(event) {
         if (!isRotating || isResizing || isDragging) return;
-        event = normalize(event);
         event.preventDefault();
+        event = normalize(event);
         updateBoxInfo({ rotation: prevAngle });
         updateBoxRect({ rotation: prevAngle });
         isRotating = false;
@@ -81,8 +81,8 @@ function initRotatingActions() {
     }
     function rotate(event) {
         if (!isRotating || isResizing || isDragging) return;
-        event = normalize(event);
         event.preventDefault();
+        event = normalize(event);
         let x = event.clientX - center.x;
         let y = event.clientY - center.y;
         let currentAngle = Math.round(R2D * Math.atan2(y, x));
@@ -93,13 +93,13 @@ function initRotatingActions() {
     }
 
     rotateHandleElem.addEventListener('mousedown', rotateStart);
-    rotateHandleElem.addEventListener('touchstart', rotateStart);
+    rotateHandleElem.addEventListener('touchstart', rotateStart, { passive: false });
 
     document.addEventListener('mouseup', rotateStop);
-    document.addEventListener('touchend', rotateStop);
+    document.addEventListener('touchend', rotateStop, { passive: false });
 
     document.addEventListener('mousemove', rotate);
-    document.addEventListener('touchmove', rotate);
+    document.addEventListener('touchmove', rotate, { passive: false });
 }
 
 function initResizingActions() {
@@ -108,8 +108,8 @@ function initResizingActions() {
 
     function resizeStart(event) {
         if (isDragging || isRotating) return;
-        event = normalize(event);
         event.preventDefault();
+        event = normalize(event);
         x = event.clientX - boxRect.width;
         y = event.clientY - boxRect.height;
         isResizing = true;
@@ -118,8 +118,8 @@ function initResizingActions() {
     }
     function resizeStop(event) {
         if (!isResizing || isDragging || isRotating) return;
-        event = normalize(event);
         event.preventDefault();
+        event = normalize(event);
         x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2));
         y = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2));
         isResizing = false;
@@ -128,8 +128,8 @@ function initResizingActions() {
     }
     function resize(event) {
         if (!isResizing || isDragging || isRotating) return;
-        event = normalize(event);
         event.preventDefault();
+        event = normalize(event);
         let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2));
         let deltaY = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2));
         updateBoxRect({ width: deltaX, height: deltaY });
@@ -139,13 +139,13 @@ function initResizingActions() {
     }
 
     resizeHandleElem.addEventListener('mousedown', resizeStart);
-    resizeHandleElem.addEventListener('touchstart', resizeStart);
+    resizeHandleElem.addEventListener('touchstart', resizeStart, { passive: false });
 
     document.addEventListener('mouseup', resizeStop);
-    document.addEventListener('touchend', resizeStop);
+    document.addEventListener('touchend', resizeStop, { passive: false });
 
     document.addEventListener('mousemove', resize);
-    document.addEventListener('touchmove', resize);
+    document.addEventListener('touchmove', resize, { passive: false });
 }
 
 function initDraggingActions() {
@@ -154,8 +154,8 @@ function initDraggingActions() {
 
     function dragStart(event) {
         if (isResizing || isRotating) return;
-        event = normalize(event);
         event.preventDefault();
+        event = normalize(event);
         x = event.clientX - boxRect.x;
         y = event.clientY - boxRect.y;
         isDragging = true;
@@ -164,8 +164,8 @@ function initDraggingActions() {
     }
     function dragStop(event) {
         if (!isDragging || isResizing || isRotating) return;
-        event = normalize(event);
         event.preventDefault();
+        event = normalize(event);
         x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
         y = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
         isDragging = false;
@@ -174,8 +174,8 @@ function initDraggingActions() {
     }
     function drag(event) {
         if (!isDragging || isResizing || isRotating) return;
-        event = normalize(event);
         event.preventDefault();
+        event = normalize(event);
         let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
         let deltaY = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
         updateBoxRect({ x: deltaX, y: deltaY });
@@ -185,13 +185,13 @@ function initDraggingActions() {
     }
 
     boxElem.addEventListener('mousedown', dragStart);
-    boxElem.addEventListener('touchstart', dragStart);
+    boxElem.addEventListener('touchstart', dragStart, { passive: false });
 
     document.addEventListener('mouseup', dragStop);
-    document.addEventListener('touchend', dragStop);
+    document.addEventListener('touchend', dragStop, { passive: false });
 
     document.addEventListener('mousemove', drag);
-    document.addEventListener('touchmove', drag);
+    document.addEventListener('touchmove', drag, { passive: false });
 }
 
 function setupBox() {
