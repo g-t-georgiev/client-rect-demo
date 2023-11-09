@@ -37,15 +37,17 @@ function setupActions() {
 
 function initRotatingActions() {
     const R2D = 180 / Math.PI;
-    let center = { x: 0, y: 0 };
+    let center;
     let startAngle;
     let prevAngle;
     // Rotate
     rotateHandleElem.addEventListener('mousedown', function (event) {
         if (isDragging || isResizing) return;
         event.preventDefault();
-        center.x = boxRect.x + (boxRect.width / 2);
-        center.y = boxRect.y + (boxRect.height / 2);
+        center = {
+            x: boxRect.x + (boxRect.width / 2),
+            y: boxRect.y + (boxRect.height / 2)
+        };
         let x = event.clientX - center.x;
         let y = event.clientY - center.y;
         startAngle = Math.round(R2D * Math.atan2(y, x));
@@ -81,14 +83,14 @@ function initRotatingActions() {
 }
 
 function initResizingActions() {
-    let x = boxRect.width;
-    let y = boxRect.height;
+    let x;
+    let y;
     // Resize
     resizeHandleElem.addEventListener('mousedown', function (event) {
         if (isDragging || isRotating) return;
         event.preventDefault();
-        x = event.clientX - x;
-        y = event.clientY - y;
+        x = event.clientX - boxRect.width;
+        y = event.clientY - boxRect.height;
         isResizing = true;
         boxElem.classList.add('active', 'resize');
         document.body.style.setProperty('--cursor', 'nwse-resize');
@@ -115,14 +117,14 @@ function initResizingActions() {
 }
 
 function initDraggingActions() {
-    let x = boxRect.x;
-    let y = boxRect.y;
+    let x;
+    let y;
     // Drag
     boxElem.addEventListener('mousedown', function (event) {
         if (isResizing || isRotating) return;
         event.preventDefault();
-        x = event.clientX - x;
-        y = event.clientY - y;
+        x = event.clientX - boxRect.x;
+        y = event.clientY - boxRect.y;
         isDragging = true;
         boxElem.classList.add('active', 'move');
         document.body.style.setProperty('--cursor', 'move');
