@@ -29,6 +29,14 @@ let isResizing = false;
 let isRotating = false;
 initialize();
 
+/**
+ * Normalize touch and pointer/mouse event inputs.
+ * @param {PointerEvent | MouseEvent | TouchEvent} event 
+ */
+function normalize(event) {
+    return event instanceof TouchEvent ? event.touches[0] : event;
+}
+
 function setupActions() {
     initDraggingActions();
     initResizingActions();
@@ -40,9 +48,10 @@ function initRotatingActions() {
     let center;
     let startAngle;
     let prevAngle;
-    // Rotate
-    rotateHandleElem.addEventListener('mousedown', function (event) {
+
+    function rotateStart(event) {
         if (isDragging || isResizing) return;
+        event = normalize(event);
         event.preventDefault();
         center = {
             x: boxRect.x + (boxRect.width / 2),
@@ -54,9 +63,10 @@ function initRotatingActions() {
         isRotating = true;
         boxElem.classList.add('active', 'rotate');
         document.body.style.setProperty('--cursor', 'grabbing');
-    });
-    document.addEventListener('mouseup', function (event) {
+    }
+    function rotateStop(event) {
         if (!isRotating || isResizing || isDragging) return;
+        event = normalize(event);
         event.preventDefault();
         updateBoxInfo({ rotation: prevAngle });
         updateBoxRect({ rotation: prevAngle });
@@ -68,9 +78,10 @@ function initRotatingActions() {
             let boundingRect = boxElem.getBoundingClientRect();
             attachBoundingRect(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
         }
-    });
-    document.addEventListener('mousemove', function (event) {
+    }
+    function rotate(event) {
         if (!isRotating || isResizing || isDragging) return;
+        event = normalize(event);
         event.preventDefault();
         let x = event.clientX - center.x;
         let y = event.clientY - center.y;
@@ -79,33 +90,45 @@ function initRotatingActions() {
         prevAngle = (boxRect.rotation + deltaAngle) % 360;
         updateBoxInfo({ rotation: prevAngle });
         boxElem.style.setProperty('--rotation', prevAngle);
-    });
+    }
+
+    rotateHandleElem.addEventListener('mousedown', rotateStart);
+    rotateHandleElem.addEventListener('touchstart', rotateStart);
+
+    document.addEventListener('mouseup', rotateStop);
+    document.addEventListener('touchend', rotateStop);
+
+    document.addEventListener('mousemove', rotate);
+    document.addEventListener('touchmove', rotate);
 }
 
 function initResizingActions() {
     let x;
     let y;
-    // Resize
-    resizeHandleElem.addEventListener('mousedown', function (event) {
+
+    function resizeStart(event) {
         if (isDragging || isRotating) return;
+        event = normalize(event);
         event.preventDefault();
         x = event.clientX - boxRect.width;
         y = event.clientY - boxRect.height;
         isResizing = true;
         boxElem.classList.add('active', 'resize');
         document.body.style.setProperty('--cursor', 'nwse-resize');
-    });
-    document.addEventListener('mouseup', function (event) {
+    }
+    function resizeStop(event) {
         if (!isResizing || isDragging || isRotating) return;
+        event = normalize(event);
         event.preventDefault();
         x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2));
         y = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2));
         isResizing = false;
         boxElem.classList.remove('active', 'resize');
         document.body.style.removeProperty('--cursor');
-    });
-    document.addEventListener('mousemove', function (event) {
+    }
+    function resize(event) {
         if (!isResizing || isDragging || isRotating) return;
+        event = normalize(event);
         event.preventDefault();
         let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2));
         let deltaY = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2));
@@ -113,33 +136,45 @@ function initResizingActions() {
         updateBoxInfo({ width: boxRect.width, height: boxRect.height });
         boxElem.style.setProperty('--width', boxRect.width);
         boxElem.style.setProperty('--height', boxRect.height);
-    });
+    }
+
+    resizeHandleElem.addEventListener('mousedown', resizeStart);
+    resizeHandleElem.addEventListener('touchstart', resizeStart);
+
+    document.addEventListener('mouseup', resizeStop);
+    document.addEventListener('touchend', resizeStop);
+
+    document.addEventListener('mousemove', resize);
+    document.addEventListener('touchmove', resize);
 }
 
 function initDraggingActions() {
     let x;
     let y;
-    // Drag
-    boxElem.addEventListener('mousedown', function (event) {
+
+    function dragStart(event) {
         if (isResizing || isRotating) return;
+        event = normalize(event);
         event.preventDefault();
         x = event.clientX - boxRect.x;
         y = event.clientY - boxRect.y;
         isDragging = true;
         boxElem.classList.add('active', 'move');
         document.body.style.setProperty('--cursor', 'move');
-    });
-    document.addEventListener('mouseup', function (event) {
+    }
+    function dragStop(event) {
         if (!isDragging || isResizing || isRotating) return;
+        event = normalize(event);
         event.preventDefault();
         x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
         y = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
         isDragging = false;
         boxElem.classList.remove('active', 'move');
         document.body.style.removeProperty('--cursor');
-    });
-    document.addEventListener('mousemove', function (event) {
+    }
+    function drag(event) {
         if (!isDragging || isResizing || isRotating) return;
+        event = normalize(event);
         event.preventDefault();
         let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
         let deltaY = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
@@ -147,7 +182,16 @@ function initDraggingActions() {
         updateBoxInfo({ x: boxRect.x, y: boxRect.y });
         boxElem.style.setProperty('--x', boxRect.x);
         boxElem.style.setProperty('--y', boxRect.y);
-    });
+    }
+
+    boxElem.addEventListener('mousedown', dragStart);
+    boxElem.addEventListener('touchstart', dragStart);
+
+    document.addEventListener('mouseup', dragStop);
+    document.addEventListener('touchend', dragStop);
+
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('touchmove', drag);
 }
 
 function setupBox() {
