@@ -14,16 +14,9 @@ const resizeHandleElem = document.querySelector('[data-box-resize-handle]');
 const boxInfoElem = document.querySelector('[data-box-info]');
 const boxInfoLabels = boxInfoElem.children;
 
-const boxRect = {
-    width: 150,
-    height: 150,
-    x: 100,
-    y: 200, 
-    rotation: 0
-}
-
 let viewportWidth = window.innerWidth;
 let viewportHeight = window.innerHeight;
+let boxRect = { width: 150, height: 150, x: 100, y: 200 };
 let isDragging = false;
 let isResizing = false;
 let isRotating = false;
@@ -45,9 +38,12 @@ function setupActions() {
 
 function initRotatingActions() {
     const R2D = 180 / Math.PI;
-    let center;
-    let startAngle;
-    let prevAngle;
+    const D2R = Math.PI / 180;
+    let rect = null;
+    let center = { x: 0, y: 0 };
+    let startAngle = 0;
+    let deltaAngle = 0;
+    let rotation = 0;
 
     function rotateStart(event) {
         if (isDragging || isResizing) return;
@@ -68,15 +64,28 @@ function initRotatingActions() {
         if (!isRotating || isResizing || isDragging) return;
         event.preventDefault();
         event = normalize(event);
-        updateBoxInfo({ rotation: prevAngle });
-        updateBoxRect({ rotation: prevAngle });
+        rotation = deltaAngle;
         isRotating = false;
+        let c1 = getPoint(boxRect.x, boxRect.y, center.x, center.y, rotation * D2R);
+        let c2 = getPoint(boxRect.x + boxRect.width, boxRect.y, center.x, center.y, rotation * D2R);
+        let c3 = getPoint(boxRect.x + boxRect.width, boxRect.y + boxRect.height, center.x, center.y, rotation * D2R);
+        let c4 = getPoint(boxRect.x, boxRect.y + boxRect.height, center.x, center.y, rotation * D2R);
+        let bx1 = Math.min(c1[0], c2[0], c3[0], c4[0]);
+        let by1 = Math.min(c1[1], c2[1], c3[1], c4[1]);
+        let bx2 = Math.max(c1[0], c2[0], c3[0], c4[0]);
+        let by2 = Math.max(c1[1], c2[1], c3[1], c4[1]);
+        pinPoint(c1[0], c1[1]);
+        pinPoint(c2[0], c2[1]);
+        pinPoint(c3[0], c3[1]);
+        pinPoint(c4[0], c4[1]);
+        pinPoint(bx1, by1);
+        pinPoint(bx2, by2);
         boxElem.classList.remove('active', 'rotate');
         document.body.style.removeProperty('--cursor');
         // Attach bounding rect
-        if (boxRect.rotation != 0) {
-            let boundingRect = boxElem.getBoundingClientRect();
-            attachBoundingRect(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
+        if (rotation != 0) {
+            rect = boxElem.getBoundingClientRect();
+            attachBoundingRect(rect.x, rect.y, rect.width, rect.height);
         }
     }
     function rotate(event) {
@@ -86,10 +95,9 @@ function initRotatingActions() {
         let x = event.clientX - center.x;
         let y = event.clientY - center.y;
         let currentAngle = Math.round(R2D * Math.atan2(y, x));
-        let deltaAngle = (currentAngle - startAngle) % 360;
-        prevAngle = (boxRect.rotation + deltaAngle) % 360;
-        updateBoxInfo({ rotation: prevAngle });
-        boxElem.style.setProperty('--rotation', prevAngle);
+        deltaAngle = (rotation + (currentAngle - startAngle)) % 360;
+        updateBoxInfo({ rotation: deltaAngle });
+        boxElem.style.setProperty('--rotation', deltaAngle);
     }
 
     rotateHandleElem.addEventListener('mousedown', rotateStart);
@@ -135,9 +143,9 @@ function initResizingActions() {
         deltaX = Math.round(deltaX);
         deltaY = Math.round(deltaY);
         updateBoxRect({ width: deltaX, height: deltaY });
-        updateBoxInfo({ width: boxRect.width, height: boxRect.height });
-        boxElem.style.setProperty('--width', boxRect.width);
-        boxElem.style.setProperty('--height', boxRect.height);
+        updateBoxInfo({ width: deltaX, height: deltaY });
+        boxElem.style.setProperty('--width', deltaX);
+        boxElem.style.setProperty('--height', deltaY);
     }
 
     resizeHandleElem.addEventListener('mousedown', resizeStart);
@@ -183,9 +191,9 @@ function initDraggingActions() {
         deltaX = Math.round(deltaX);
         deltaY = Math.round(deltaY);
         updateBoxRect({ x: deltaX, y: deltaY });
-        updateBoxInfo({ x: boxRect.x, y: boxRect.y });
-        boxElem.style.setProperty('--x', boxRect.x);
-        boxElem.style.setProperty('--y', boxRect.y);
+        updateBoxInfo({ x: deltaX, y: deltaY });
+        boxElem.style.setProperty('--x', deltaX);
+        boxElem.style.setProperty('--y', deltaY);
     }
 
     boxElem.addEventListener('mousedown', dragStart);
@@ -196,15 +204,6 @@ function initDraggingActions() {
 
     document.addEventListener('mousemove', drag);
     document.addEventListener('touchmove', drag, { passive: false });
-}
-
-function setupBox() {
-    boxElem.style.setProperty('--width', boxRect.width);
-    boxElem.style.setProperty('--height', boxRect.height);
-    boxElem.style.setProperty('--x', boxRect.x);
-    boxElem.style.setProperty('--y', boxRect.y);
-    boxElem.style.setProperty('--rotation', boxRect.rotation);
-    updateBoxInfo(boxRect);
 }
 
 /**
@@ -225,28 +224,26 @@ function updateBoxInfo({ x, y, width, height, rotation }) {
 }
 
 /**
- * Updates box rect state values.
- * @param {object} rect 
- * @param {number | undefined} rect.x 
- * @param {number | undefined} rect.y 
- * @param {number | undefined} rect.width 
- * @param {number | undefined} rect.height 
- * @param {number | undefined} rect.rotation 
+ * Update box rect data.
+ * @param {object} data 
+ * @param {number | undefined} data.x 
+ * @param {number | undefined} data.y 
+ * @param {number | undefined} data.width 
+ * @param {number | undefined} data.height 
+ * @param {number | undefined} data.rotation
  */
-function updateBoxRect({ x, y, width, height, rotation }) {
+function updateBoxRect({ x, y, width, height }) {
     if (x != null && typeof x == 'number') boxRect.x = x;
     if (y != null && typeof y == 'number') boxRect.y = y;
     if (width != null && typeof width == 'number') boxRect.width = width;
     if (height != null && typeof height == 'number') boxRect.height = height;
-    if (rotation != null && typeof rotation == 'number') boxRect.rotation = rotation;
-    return boxRect;
 }
 
 function initialize() {
     viewportWidth = window.innerWidth;
     viewportHeight = window.innerHeight;
 
-    setupBox();
+    updateBoxInfo({ width: boxRect.width, height: boxRect.height, x: boxRect.x, y: boxRect.y, rotation: 0 });
     setupActions();
 
     window.addEventListener('resize', function () {
@@ -255,7 +252,18 @@ function initialize() {
     });
 }
 
+/**
+ * Attach a bounding rectangle element to 
+ * specified [x, y] coordinates and width/height.
+ * @param {number} x 
+ * @param {number} y 
+ * @param {number} width 
+ * @param {number} height 
+ */
 function attachBoundingRect(x, y, width, height) {
+    let existingElem = document.querySelector('.bounding-rect');
+    if (existingElem) existingElem.remove();
+
     let boundingRectElem = document.createElement('div');
     boundingRectElem.classList.add('bounding-rect');
     boundingRectElem.style.setProperty('--width', width);
@@ -266,5 +274,58 @@ function attachBoundingRect(x, y, width, height) {
     let timeoutId = setTimeout(function() {
         clearTimeout(timeoutId);
         boundingRectElem.remove();
-    }, 1000);
+    }, 3000);
+}
+
+/**
+ * Get coordinates of a point in the 
+ * context of applied rotational transformation.
+ * @param {number} x 
+ * @param {number} y 
+ * @param {number} cx 
+ * @param {number} cy 
+ * @param {number} angle 
+ * @returns 
+ */
+function getPoint(x, y, cx, cy, angle) {
+    return [
+        (x - cx) * Math.cos(angle) - ((y - cy) * Math.sin(angle)) + cx,
+        (x - cx) * Math.sin(angle) + ((y - cy) * Math.cos(angle)) + cy
+    ];
+}
+
+/**
+ * Pin a point element to specified [x, y] coordinates.
+ * A target count value can be passed down, as well, 
+ * serving for a count threshold reference for cleaning up 
+ * unnecessary elements on frequent calls of this method.
+ * @param {number} x 
+ * @param {number} y 
+ * @param {number} count 
+ */
+function pinPoint(x, y, count = 6) {
+    let existingElems = document.querySelectorAll('.point');
+    if (existingElems.length == count) existingElems.forEach(elem => elem.remove());
+
+    const point = document.createElement('div');
+    point.classList.add('point');
+    point.style.setProperty('--x', x);
+    point.style.setProperty('--y', y);
+    let color = getRandomColor();
+    point.style.setProperty('--color', color);
+    document.body.append(point);
+    let timeoutId = setTimeout(function() {
+        clearTimeout(timeoutId);
+        point.remove();
+    }, 3000);
+}
+
+/**
+ * Generate stringified random 
+ * 6-digit hex value color.
+ * @returns {string}
+ */
+function getRandomColor() {
+    let n = (Math.random() * 0xfffff * 1000000).toString(16);
+    return `#${n.slice(0, 6)}`;
 }
