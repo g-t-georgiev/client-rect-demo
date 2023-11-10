@@ -67,20 +67,7 @@ function initRotatingActions() {
         event = normalize(event);
         rotation = deltaAngle;
         isRotating = false;
-        let c1 = getPoint(boxRect.x, boxRect.y, center.x, center.y, rotation * D2R);
-        let c2 = getPoint(boxRect.x + boxRect.width, boxRect.y, center.x, center.y, rotation * D2R);
-        let c3 = getPoint(boxRect.x + boxRect.width, boxRect.y + boxRect.height, center.x, center.y, rotation * D2R);
-        let c4 = getPoint(boxRect.x, boxRect.y + boxRect.height, center.x, center.y, rotation * D2R);
-        let bx1 = Math.min(c1[0], c2[0], c3[0], c4[0]);
-        let by1 = Math.min(c1[1], c2[1], c3[1], c4[1]);
-        let bx2 = Math.max(c1[0], c2[0], c3[0], c4[0]);
-        let by2 = Math.max(c1[1], c2[1], c3[1], c4[1]);
-        pinPoint(c1[0], c1[1]);
-        pinPoint(c2[0], c2[1]);
-        pinPoint(c3[0], c3[1]);
-        pinPoint(c4[0], c4[1]);
-        pinPoint(bx1, by1);
-        pinPoint(bx2, by2);
+        attachBoxRectPoints(center, rotation * D2R);
         boxElem.classList.remove('active', 'rotate');
         document.body.style.removeProperty('--cursor');
         // Attach bounding rect
@@ -293,6 +280,35 @@ function getPoint(x, y, cx, cy, angle) {
         (x - cx) * Math.cos(angle) - ((y - cy) * Math.sin(angle)) + cx,
         (x - cx) * Math.sin(angle) + ((y - cy) * Math.cos(angle)) + cy
     ];
+}
+
+/**
+ * Calculate and attach box element rect point marker elements, 
+ * according to a given angle of rotation and center coordinates.
+ * @param {{ x: number, y: number }} center 
+ * @param {number} angle 
+ */
+function attachBoxRectPoints(center, angle) {
+    let c1 = getPoint(boxRect.x, boxRect.y, center.x, center.y, angle);
+    let c2 = getPoint(boxRect.x + boxRect.width, boxRect.y, center.x, center.y, angle);
+    let c3 = getPoint(boxRect.x + boxRect.width, boxRect.y + boxRect.height, center.x, center.y, angle);
+    let c4 = getPoint(boxRect.x, boxRect.y + boxRect.height, center.x, center.y, angle);
+
+    let b1 = [
+        Math.min(c1[0], c2[0], c3[0], c4[0]),
+        Math.min(c1[1], c2[1], c3[1], c4[1])
+    ];
+    let b2 = [
+        Math.max(c1[0], c2[0], c3[0], c4[0]),
+        Math.max(c1[1], c2[1], c3[1], c4[1])
+    ];
+
+    pinPoint(c1[0], c1[1]);
+    pinPoint(c2[0], c2[1]);
+    pinPoint(c3[0], c3[1]);
+    pinPoint(c4[0], c4[1]);
+    pinPoint(b1[0], b1[1]);
+    pinPoint(b2[0], b2[1]);
 }
 
 /**
