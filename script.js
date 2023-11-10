@@ -27,6 +27,7 @@ initialize();
  * @param {PointerEvent | MouseEvent | TouchEvent} event 
  */
 function normalize(event) {
+    if (!window.TouchEvent) return event;
     return event instanceof TouchEvent ? event.changedTouches[0] : event;
 }
 
