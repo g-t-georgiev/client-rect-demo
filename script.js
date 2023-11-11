@@ -27,109 +27,89 @@ let isRotating = false;
 initialize();
 
 /**
- * Normalize touch and pointer/mouse event inputs.
+ * Equalize touch and pointer/mouse event inputs,
+ * and call a handler method passing down the event.
+ * @param {(event: Event) => void} handler 
  * @param {PointerEvent | MouseEvent | TouchEvent} event 
  */
-function normalize(event) {
-    if (!window.TouchEvent) return event;
-    return event instanceof TouchEvent ? event.changedTouches[0] : event;
+function normalize(handler, event) {
+    event.preventDefault();
+    event = globalThis.TouchEvent && event instanceof TouchEvent ? event.changedTouches[0] : event;
+    handler.call(this, event);
 }
 
 function setupActions() {
-    initDraggingActions();
-    initResizingActions();
-    initRotatingActions();
-}
-
-function initRotatingActions() {
+    let locked = false;
+    let x = 0;
+    let y = 0;
     let startAngle = 0;
     let deltaAngle = 0;
 
-    function rotateStart(event) {
-        if (isDragging || isResizing) return;
-        event.preventDefault();
-        event = normalize(event);
-        center = {
-            x: boxRect.x + (boxRect.width / 2),
-            y: boxRect.y + (boxRect.height / 2)
-        };
-        let x = event.clientX - center.x;
-        let y = event.clientY - center.y;
+    function rotateStartHandler(event) {
+        if (isRotating || isDragging || isResizing) return false;
+        center.x = boxRect.x + (boxRect.width / 2);
+        center.y = boxRect.y + (boxRect.height / 2);
+        x = event.clientX - center.x;
+        y = event.clientY - center.y;
         startAngle = Math.round(R2D * Math.atan2(y, x));
         isRotating = true;
         boxElem.classList.add('active', 'rotate');
         document.body.style.setProperty('--cursor', 'grabbing');
+        locked = true;
+        return true;
     }
-    function rotateStop(event) {
-        if (!isRotating || isResizing || isDragging) return;
-        event.preventDefault();
-        event = normalize(event);
+
+    function rotateEndHandler(event) {
+        if (!isRotating || isDragging || isResizing) return false;
         updateBoxRect({ rotation: deltaAngle });
         isRotating = false;
-        attachBoxRectPoints(center, boxRect.rotation * D2R);
         boxElem.classList.remove('active', 'rotate');
         document.body.style.removeProperty('--cursor');
-        // Attach bounding rect
-        if (boxRect.rotation != 0) {
-            const boundingRect = boxElem.getBoundingClientRect();
-            attachBoundingRect(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height);
-        }
+        locked = false;
+        return true;
     }
-    function rotate(event) {
-        if (!isRotating || isResizing || isDragging) return;
-        event.preventDefault();
-        event = normalize(event);
-        let x = event.clientX - center.x;
-        let y = event.clientY - center.y;
+
+    function rotateHandler(event) {
+        if (!isRotating || isDragging || isResizing) return false;
+        x = event.clientX - center.x;
+        y = event.clientY - center.y;
         let currentAngle = Math.round(R2D * Math.atan2(y, x));
         deltaAngle = (boxRect.rotation + (currentAngle - startAngle)) % 360;
         updateBoxInfo({ rotation: deltaAngle });
         boxElem.style.setProperty('--rotation', deltaAngle);
+        const c1 = getPoint(boxRect.x, boxRect.y, center.x, center.y, deltaAngle * D2R);
+        attachPoint(c1.x, c1.y);
+        return true;
     }
 
-    rotateHandleElem.addEventListener('mousedown', rotateStart);
-    rotateHandleElem.addEventListener('touchstart', rotateStart);
-
-    document.addEventListener('mouseup', rotateStop);
-    document.addEventListener('touchend', rotateStop, { passive: false });
-
-    document.addEventListener('mousemove', rotate);
-    document.addEventListener('touchmove', rotate, { passive: false });
-}
-
-function initResizingActions() {
-    let x;
-    let y;
-    let c;
-
-    function resizeStart(event) {
-        if (isDragging || isRotating) return;
-        event.preventDefault();
-        event = normalize(event);
-        x = event.clientX - boxRect.width;
-        y = event.clientY - boxRect.height;
+    function resizeStartHandler(event) {
+        if (isResizing || isDragging || isRotating) return false;
         center.x = boxRect.x + (boxRect.width / 2);
         center.y = boxRect.y + (boxRect.height / 2);
-        if (!c) c = createPoint(center.x, center.y);
+        x = event.clientX - boxRect.width;
+        y = event.clientY - boxRect.height;
         isResizing = true;
         boxElem.classList.add('active', 'resize');
         document.body.style.setProperty('--cursor', 'nwse-resize');
+        locked = true;
+        return true;
     }
-    function resizeStop(event) {
-        if (!isResizing || isDragging || isRotating) return;
-        event.preventDefault();
-        event = normalize(event);
+
+    function resizeEndHandler(event) {
+        if (!isResizing || isDragging || isRotating) return false;
+        center.x = boxRect.x + (boxRect.width / 2);
+        center.y = boxRect.y + (boxRect.height / 2);
         x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2));
         y = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2));
-        if (c) c.remove(), c = null;
         isResizing = false;
         boxElem.classList.remove('active', 'resize');
         document.body.style.removeProperty('--cursor');
+        locked = false;
+        return true;
     }
-    function resize(event) {
-        if (!isResizing || isDragging || isRotating) return;
-        event.preventDefault();
-        event = normalize(event);
+
+    function resizeHandler(event) {
+        if (!isResizing || isDragging || isRotating) return false;
         let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2));
         let deltaY = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2));
         deltaX = Math.round(deltaX);
@@ -138,61 +118,42 @@ function initResizingActions() {
         updateBoxInfo({ width: deltaX, height: deltaY });
         center.x = boxRect.x + (boxRect.width / 2);
         center.y = boxRect.y + (boxRect.height / 2);
-        let rotation = Number(boxElem.style.getPropertyValue('--rotation'));
-        if (rotation != 0) {
-            let c1 = getPoint(boxRect.x, boxRect.y, center.x, center.y, rotation * D2R);
-            let c3 = getPoint(boxRect.x + boxRect.width, boxRect.y + boxRect.height, center.x, center.y, rotation * D2R);
-            center.x = ((c1[0] + c3[0]) / 2);
-            center.y = ((c1[1] + c3[1]) / 2);
-            let c1a = getPoint(c1[0], c1[1], center.x, center.y, -(rotation * D2R));
-            updateBoxInfo({ x: c1a[0], y: c1a[1] });
-            boxElem.style.setProperty('--x', c1a[0]);
-            boxElem.style.setProperty('--y', c1a[1]);
-        }
+        const c1 = getPoint(boxRect.x, boxRect.y, center.x, center.y, boxRect.rotation * D2R);
+        attachPoint(c1.x, c1.y);
+        // TODO: Correct top left corner position
         boxElem.style.setProperty('--width', deltaX);
         boxElem.style.setProperty('--height', deltaY);
-        c.style.setProperty('--x', center.x);
-        c.style.setProperty('--y', center.y);
+        return true;
     }
 
-    resizeHandleElem.addEventListener('mousedown', resizeStart);
-    resizeHandleElem.addEventListener('touchstart', resizeStart);
-
-    document.addEventListener('mouseup', resizeStop);
-    document.addEventListener('touchend', resizeStop, { passive: false });
-
-    document.addEventListener('mousemove', resize);
-    document.addEventListener('touchmove', resize, { passive: false });
-}
-
-function initDraggingActions() {
-    let x;
-    let y;
-
-    function dragStart(event) {
-        if (isResizing || isRotating) return;
-        event.preventDefault();
-        event = normalize(event);
+    function dragStartHandler(event) {
+        if (isDragging || isResizing || isRotating) return false;
+        center.x = boxRect.x + (boxRect.width / 2);
+        center.y = boxRect.y + (boxRect.height / 2);
         x = event.clientX - boxRect.x;
         y = event.clientY - boxRect.y;
         isDragging = true;
         boxElem.classList.add('active', 'move');
         document.body.style.setProperty('--cursor', 'move');
+        locked = true;
+        return true;
     }
-    function dragStop(event) {
-        if (!isDragging || isResizing || isRotating) return;
-        event.preventDefault();
-        event = normalize(event);
+
+    function dragEndHandler(event) {
+        if (!isDragging || isResizing || isRotating) return false;
+        center.x = boxRect.x + (boxRect.width / 2);
+        center.y = boxRect.y + (boxRect.height / 2);
         x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
         y = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
         isDragging = false;
         boxElem.classList.remove('active', 'move');
         document.body.style.removeProperty('--cursor');
+        locked = false;
+        return true;
     }
-    function drag(event) {
-        if (!isDragging || isResizing || isRotating) return;
-        event.preventDefault();
-        event = normalize(event);
+
+    function dragHandler(event) {
+        if (!isDragging || isResizing || isRotating) return false;
         let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
         let deltaY = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
         deltaX = Math.round(deltaX);
@@ -201,16 +162,71 @@ function initDraggingActions() {
         updateBoxInfo({ x: deltaX, y: deltaY });
         boxElem.style.setProperty('--x', deltaX);
         boxElem.style.setProperty('--y', deltaY);
+        return true;
     }
 
-    boxElem.addEventListener('mousedown', dragStart);
-    boxElem.addEventListener('touchstart', dragStart);
+    function pointerdownHandler(event) {
+        // Drag start
+        if (!locked && event.target == boxElem) {
+            dragStartHandler.call(boxElem, event);
+        }
 
-    document.addEventListener('mouseup', dragStop);
-    document.addEventListener('touchend', dragStop, { passive: false });
+        // Resize start
+        if (!locked && event.target == resizeHandleElem) {
+            resizeStartHandler.call(resizeHandleElem, event);
+        }
 
-    document.addEventListener('mousemove', drag);
-    document.addEventListener('touchmove', drag, { passive: false });
+        // Rotate start
+        if (!locked && event.target == rotateHandleElem) {
+            rotateStartHandler.call(rotateHandleElem, event);
+        }
+    }
+
+    function pointerupHandler(event) {
+        if (!isDragging && !isResizing && !isRotating) return false;
+
+        // Drag end
+        if (locked && isDragging) {
+            dragEndHandler.call(boxElem, event);
+        }
+
+        // Resize end
+        if (locked && isResizing) {
+            resizeEndHandler.call(resizeHandleElem, event);
+        }
+
+        // Rotate end
+        if (locked && isRotating) {
+            rotateEndHandler.call(rotateHandleElem, event);
+        }
+    }
+
+    function pointermoveHandler(event) {
+        if (!isDragging && !isResizing && !isRotating) return false;
+
+        // Dragging..
+        if (locked && isDragging) {
+            dragHandler.call(boxElem, event);
+        }
+
+        // Resizing..
+        if (locked && isResizing) {
+            resizeHandler.call(resizeHandleElem, event);
+        }
+
+        // Rotating..
+        if (locked && isRotating) {
+            rotateHandler.call(rotateHandleElem, event);
+        }
+    }
+
+    boxElem.addEventListener('mousedown', normalize.bind(boxElem, pointerdownHandler));
+    boxElem.addEventListener('touchstart', normalize.bind(boxElem, pointerdownHandler), { passive: false });
+    document.addEventListener('mouseup', normalize.bind(boxElem, pointerupHandler));
+    document.addEventListener('touchend', normalize.bind(boxElem, pointerupHandler), { passive: false });
+    document.addEventListener('touchcancel', normalize.bind(boxElem, pointerupHandler), { passive: false });
+    document.addEventListener('mousemove', normalize.bind(boxElem, pointermoveHandler));
+    document.addEventListener('touchmove', normalize.bind(boxElem, pointermoveHandler), { passive: false });
 }
 
 /**
@@ -261,120 +277,33 @@ function initialize() {
 }
 
 /**
- * Attach a bounding rectangle element to 
- * specified [x, y] coordinates and width/height.
- * @param {number} x 
- * @param {number} y 
- * @param {number} width 
- * @param {number} height 
- */
-function attachBoundingRect(x, y, width, height) {
-    let existingElem = document.querySelector('.bounding-rect');
-    if (existingElem) existingElem.remove();
-
-    let boundingRectElem = document.createElement('div');
-    boundingRectElem.classList.add('bounding-rect');
-    boundingRectElem.style.setProperty('--width', width);
-    boundingRectElem.style.setProperty('--height', height);
-    boundingRectElem.style.setProperty('--y', y);
-    boundingRectElem.style.setProperty('--x', x);
-    document.body.append(boundingRectElem);
-    let timeoutId = setTimeout(function () {
-        clearTimeout(timeoutId);
-        boundingRectElem.remove();
-    }, 3000);
-}
-
-/**
- * Get coordinates of a point in the 
- * context of applied rotational transformation.
- * @param {number} x 
- * @param {number} y 
- * @param {number} cx 
- * @param {number} cy 
- * @param {number} angle 
- * @returns 
+ * Get coordinates of a point within applied 
+ * rotation context and return it.
+ * @param {number} x Point's previous X coordinate value
+ * @param {number} y Point's previous Y coordinate value
+ * @param {number} cx Central point X coordinate value
+ * @param {number} cy Central point Y coordinate value
+ * @param {number} angle Applied angle of rotation value in radians.
+ * @returns {{ x: number, y: number }}
  */
 function getPoint(x, y, cx, cy, angle) {
-    return [
-        (x - cx) * Math.cos(angle) - ((y - cy) * Math.sin(angle)) + cx,
-        (x - cx) * Math.sin(angle) + ((y - cy) * Math.cos(angle)) + cy
-    ];
+    return {
+        x: (x - cx) * Math.cos(angle) - ((y - cy) * Math.sin(angle)) + cx,
+        y: (x - cx) * Math.sin(angle) + ((y - cy) * Math.cos(angle)) + cy
+    };
 }
 
-/**
- * Calculate and attach box element rect point marker elements, 
- * according to a given angle of rotation and center coordinates.
- * @param {{ x: number, y: number }} center 
- * @param {number} angle 
- */
-function attachBoxRectPoints(center, angle) {
-    let c1 = getPoint(boxRect.x, boxRect.y, center.x, center.y, angle);
-    let c2 = getPoint(boxRect.x + boxRect.width, boxRect.y, center.x, center.y, angle);
-    let c3 = getPoint(boxRect.x + boxRect.width, boxRect.y + boxRect.height, center.x, center.y, angle);
-    let c4 = getPoint(boxRect.x, boxRect.y + boxRect.height, center.x, center.y, angle);
+function attachPoint(x, y) {
+    let point = document.querySelector('.point');
+    if (point) {
+        point.style.setProperty('--x', x);
+        point.style.setProperty('--y', y);
+        return;
+    }
 
-    let b1 = [
-        Math.min(c1[0], c2[0], c3[0], c4[0]),
-        Math.min(c1[1], c2[1], c3[1], c4[1])
-    ];
-    let b2 = [
-        Math.max(c1[0], c2[0], c3[0], c4[0]),
-        Math.max(c1[1], c2[1], c3[1], c4[1])
-    ];
-
-    createTransitionalPoint(c1[0], c1[1]);
-    createTransitionalPoint(c2[0], c2[1]);
-    createTransitionalPoint(c3[0], c3[1]);
-    createTransitionalPoint(c4[0], c4[1]);
-    createTransitionalPoint(b1[0], b1[1]);
-    createTransitionalPoint(b2[0], b2[1]);
-}
-
-/**
- * Create a transitional point, which is removed after 3 seconds.
- * A target count value can be passed down, as well, serving for a count 
- * threshold reference for cleaning up unnecessary elements on frequent calls of this method.
- * @param {number} x 
- * @param {number} y 
- * @param {number} count 
- */
-function createTransitionalPoint(x, y, count = 6) {
-    let existingElems = document.querySelectorAll('.point');
-    if (existingElems.length == count) existingElems.forEach(elem => elem.remove());
-
-    const point = createPoint(x, y);
-    document.body.append(point);
-    let timeoutId = setTimeout(function () {
-        clearTimeout(timeoutId);
-        point.remove();
-    }, 3000);
-}
-
-/**
- * Create a point and place it 
- * to the specified [x, y] coordinates
- * @param {number} x 
- * @param {number} y 
- * @returns {HTMLElement}
- */
-function createPoint(x, y) {
-    const point = document.createElement('div');
+    point = document.createElement('div');
     point.classList.add('point');
     point.style.setProperty('--x', x);
     point.style.setProperty('--y', y);
-    let color = getRandomColor();
-    point.style.setProperty('--color', color);
     document.body.append(point);
-    return point;
-}
-
-/**
- * Generate stringified random 
- * 6-digit hex value color.
- * @returns {string}
- */
-function getRandomColor() {
-    let n = (Math.random() * 0xfffff * 1000000).toString(16);
-    return `#${n.slice(0, 6)}`;
 }
