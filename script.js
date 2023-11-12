@@ -2,6 +2,9 @@ const RESIZE_HANDLE_WIDTH = 17;
 const ROTATE_HANLE_WIDTH = 12;
 const ROTATE_HANLE_HEIGHT = 13;
 
+const R2D = 180 / Math.PI;
+const D2R = Math.PI / 180;
+
 /** @type HTMLElement */
 const rectElem = document.querySelector('[data-rect]');
 /** @type HTMLElement */
@@ -13,14 +16,15 @@ const resizeHandleElem = document.querySelector('[data-box-resize-handle]');
 /** @type HTMLElement */
 const boxInfoElem = document.querySelector('[data-box-info]');
 const boxInfoLabels = boxInfoElem.children;
-
-const R2D = 180 / Math.PI;
-const D2R = Math.PI / 180;
+/** @type HTMLElement[] */
+const points = [];
+/** @type HTMLElement[] */
+const lines = [];
+const boxRect = { width: 150, height: 150, x: 100, y: 200, rotation: 0 };
+const center = { x: 0, y: 0 };
 
 let viewportWidth = window.innerWidth;
 let viewportHeight = window.innerHeight;
-let boxRect = { width: 150, height: 150, x: 100, y: 200, rotation: 0 };
-let center = { x: 0, y: 0 };
 let isDragging = false;
 let isResizing = false;
 let isRotating = false;
@@ -76,9 +80,36 @@ function setupActions() {
         let currentAngle = Math.round(R2D * Math.atan2(y, x));
         deltaAngle = (boxRect.rotation + (currentAngle - startAngle)) % 360;
         updateBoxInfo({ rotation: deltaAngle });
-        boxElem.style.setProperty('--rotation', deltaAngle);
+        // Update bounding box
+        const boundingRect = getBoundingRect(boxElem, deltaAngle);
+        attachBoundingRect(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height, deltaAngle);
+        // Update corner points
         const c1 = getPoint(boxRect.x, boxRect.y, center.x, center.y, deltaAngle * D2R);
-        attachPoint(c1.x, c1.y);
+        const c2 = getPoint(boxRect.x + boxRect.width, boxRect.y, center.x, center.y, deltaAngle * D2R);
+        const c3 = getPoint(boxRect.x + boxRect.width, boxRect.y + boxRect.height, center.x, center.y, deltaAngle * D2R);
+        const c4 = getPoint(boxRect.x, boxRect.y + boxRect.height, center.x, center.y, deltaAngle * D2R);
+        const c1a = getPoint(c1.x, c1.y, (c1.x + c3.x) / 2, (c1.y + c3.y) / 2, -(deltaAngle * D2R));
+        const b1 = { x: boundingRect.x, y: boundingRect.y };
+        const b2 = { x: boundingRect.x + boundingRect.width, y: boundingRect.y };
+        const b3 = { x: boundingRect.x + boundingRect.width, y: boundingRect.y + boundingRect.height };
+        const b4 = { x: boundingRect.x, y: boundingRect.y + boundingRect.height };
+        const b0 = { x: (b1.x + b3.x) / 2, y: (b1.y + b3.y) / 2 };
+        movePoint(points[0], center);
+        movePoint(points[1], c1);
+        movePoint(points[2], c2);
+        movePoint(points[3], c3);
+        movePoint(points[4], c4);
+        movePoint(points[5], c1a);
+        movePoint(points[6], b0);
+        movePoint(points[7], b1);
+        movePoint(points[8], b2);
+        movePoint(points[9], b3);
+        movePoint(points[10], b4);
+        // Update diagonal lines
+        adjustLine(lines[0], c1.x, c1.y, calcLineLength(boxRect.width, boxRect.height), calcLineAngle(boxRect.width, boxRect.height) + deltaAngle);
+        adjustLine(lines[1], b1.x, b1.y, calcLineLength(boundingRect.width, boundingRect.height), calcLineAngle(boundingRect.width, boundingRect.height));
+        // Update UI
+        boxElem.style.setProperty('--rotation', deltaAngle);
         return true;
     }
 
@@ -116,11 +147,39 @@ function setupActions() {
         deltaY = Math.round(deltaY);
         updateBoxRect({ width: deltaX, height: deltaY });
         updateBoxInfo({ width: deltaX, height: deltaY });
+        // Update bounding box element
+        const boundingRect = getBoundingRect(boxElem);
+        attachBoundingRect(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height, boxRect.rotation);
+        // Update center point
         center.x = boxRect.x + (boxRect.width / 2);
         center.y = boxRect.y + (boxRect.height / 2);
+        // Update corner points
         const c1 = getPoint(boxRect.x, boxRect.y, center.x, center.y, boxRect.rotation * D2R);
-        attachPoint(c1.x, c1.y);
+        const c2 = getPoint(boxRect.x + boxRect.width, boxRect.y, center.x, center.y, boxRect.rotation * D2R);
+        const c3 = getPoint(boxRect.x + boxRect.width, boxRect.y + boxRect.height, center.x, center.y, boxRect.rotation * D2R);
+        const c4 = getPoint(boxRect.x, boxRect.y + boxRect.height, center.x, center.y, boxRect.rotation * D2R);
+        const c1a = getPoint(c1.x, c1.y, (c1.x + c3.x) / 2, (c1.y + c3.y) / 2, -(boxRect.rotation * D2R));
+        const b1 = { x: boundingRect.x, y: boundingRect.y };
+        const b2 = { x: boundingRect.x + boundingRect.width, y: boundingRect.y };
+        const b3 = { x: boundingRect.x + boundingRect.width, y: boundingRect.y + boundingRect.height };
+        const b4 = { x: boundingRect.x, y: boundingRect.y + boundingRect.height };
+        const b0 = { x: (b1.x + b3.x) / 2, y: (b1.y + b3.y) / 2 };
+        movePoint(points[0], center);
+        movePoint(points[1], c1);
+        movePoint(points[2], c2);
+        movePoint(points[3], c3);
+        movePoint(points[4], c4);
+        movePoint(points[5], c1a);
+        movePoint(points[6], b0);
+        movePoint(points[7], b1);
+        movePoint(points[8], b2);
+        movePoint(points[9], b3);
+        movePoint(points[10], b4);
         // TODO: Correct top left corner position
+        // Update diagonal lines
+        adjustLine(lines[0], c1.x, c1.y, calcLineLength(boxRect.width, boxRect.height), calcLineAngle(boxRect.width, boxRect.height) + boxRect.rotation);
+        adjustLine(lines[1], b1.x, b1.y, calcLineLength(boundingRect.width, boundingRect.height), calcLineAngle(boundingRect.width, boundingRect.height));
+        // Update UI
         boxElem.style.setProperty('--width', deltaX);
         boxElem.style.setProperty('--height', deltaY);
         return true;
@@ -158,8 +217,39 @@ function setupActions() {
         let deltaY = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
         deltaX = Math.round(deltaX);
         deltaY = Math.round(deltaY);
+        center.x = deltaX + (boxRect.width / 2);
+        center.y = deltaY + (boxRect.height / 2);
         updateBoxRect({ x: deltaX, y: deltaY });
         updateBoxInfo({ x: deltaX, y: deltaY });
+        // Update bounding box element
+        const boundingRect = getBoundingRect(boxElem);
+        attachBoundingRect(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height, boxRect.rotation);
+        // Update corner points
+        const c1 = getPoint(boxRect.x, boxRect.y, center.x, center.y, boxRect.rotation * D2R);
+        const c2 = getPoint(boxRect.x + boxRect.width, boxRect.y, center.x, center.y, boxRect.rotation * D2R);
+        const c3 = getPoint(boxRect.x + boxRect.width, boxRect.y + boxRect.height, center.x, center.y, boxRect.rotation * D2R);
+        const c4 = getPoint(boxRect.x, boxRect.y + boxRect.height, center.x, center.y, boxRect.rotation * D2R);
+        const c1a = getPoint(c1.x, c1.y, (c1.x + c3.x) / 2, (c1.y + c3.y) / 2, -(boxRect.rotation * D2R));
+        const b1 = { x: boundingRect.x, y: boundingRect.y };
+        const b2 = { x: boundingRect.x + boundingRect.width, y: boundingRect.y };
+        const b3 = { x: boundingRect.x + boundingRect.width, y: boundingRect.y + boundingRect.height };
+        const b4 = { x: boundingRect.x, y: boundingRect.y + boundingRect.height };
+        const b0 = { x: (b1.x + b3.x) / 2, y: (b1.y + b3.y) / 2 };
+        movePoint(points[0], center);
+        movePoint(points[1], c1);
+        movePoint(points[2], c2);
+        movePoint(points[3], c3);
+        movePoint(points[4], c4);
+        movePoint(points[5], c1a);
+        movePoint(points[6], b0);
+        movePoint(points[7], b1);
+        movePoint(points[8], b2);
+        movePoint(points[9], b3);
+        movePoint(points[10], b4);
+        // Update diagonal lines
+        adjustLine(lines[0], c1.x, c1.y, calcLineLength(boxRect.width, boxRect.height), calcLineAngle(boxRect.width, boxRect.height) + boxRect.rotation);
+        adjustLine(lines[1], b1.x, b1.y, calcLineLength(boundingRect.width, boundingRect.height), calcLineAngle(boundingRect.width, boundingRect.height));
+        // Update UI
         boxElem.style.setProperty('--x', deltaX);
         boxElem.style.setProperty('--y', deltaY);
         return true;
@@ -168,17 +258,17 @@ function setupActions() {
     function pointerdownHandler(event) {
         // Drag start
         if (!locked && event.target == boxElem) {
-            dragStartHandler.call(boxElem, event);
+            return dragStartHandler.call(boxElem, event);
         }
 
         // Resize start
         if (!locked && event.target == resizeHandleElem) {
-            resizeStartHandler.call(resizeHandleElem, event);
+            return resizeStartHandler.call(resizeHandleElem, event);
         }
 
         // Rotate start
         if (!locked && event.target == rotateHandleElem) {
-            rotateStartHandler.call(rotateHandleElem, event);
+            return rotateStartHandler.call(rotateHandleElem, event);
         }
     }
 
@@ -187,17 +277,17 @@ function setupActions() {
 
         // Drag end
         if (locked && isDragging) {
-            dragEndHandler.call(boxElem, event);
+            return dragEndHandler.call(boxElem, event);
         }
 
         // Resize end
         if (locked && isResizing) {
-            resizeEndHandler.call(resizeHandleElem, event);
+            return resizeEndHandler.call(resizeHandleElem, event);
         }
 
         // Rotate end
         if (locked && isRotating) {
-            rotateEndHandler.call(rotateHandleElem, event);
+            return rotateEndHandler.call(rotateHandleElem, event);
         }
     }
 
@@ -206,17 +296,17 @@ function setupActions() {
 
         // Dragging..
         if (locked && isDragging) {
-            dragHandler.call(boxElem, event);
+            return dragHandler.call(boxElem, event);
         }
 
         // Resizing..
         if (locked && isResizing) {
-            resizeHandler.call(resizeHandleElem, event);
+            return resizeHandler.call(resizeHandleElem, event);
         }
 
         // Rotating..
         if (locked && isRotating) {
-            rotateHandler.call(rotateHandleElem, event);
+            return rotateHandler.call(rotateHandleElem, event);
         }
     }
 
@@ -270,10 +360,51 @@ function initialize() {
     updateBoxInfo({ width: boxRect.width, height: boxRect.height, x: boxRect.x, y: boxRect.y, rotation: boxRect.rotation });
     setupActions();
 
+    // Define center
+    center.x = boxRect.x + (boxRect.width / 2);
+    center.y = boxRect.y + (boxRect.height / 2);
+    // Attach bounding box
+    const boundingRect = getBoundingRect(boxElem);
+    attachBoundingRect(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height, boxRect.rotation);
+    // Attach corner points
+    const c0 = { ...center };
+    const c1 = getPoint(boxRect.x, boxRect.y, center.x, center.y, boxRect.rotation * D2R);
+    const c2 = getPoint(boxRect.x + boxRect.width, boxRect.y, center.x, center.y, boxRect.rotation * D2R);
+    const c3 = getPoint(boxRect.x + boxRect.width, boxRect.y + boxRect.height, center.x, center.y, boxRect.rotation * D2R);
+    const c4 = getPoint(boxRect.x, boxRect.y + boxRect.height, center.x, center.y, boxRect.rotation * D2R);
+    const c1a = getPoint(c1.x, c1.y, (c1.x + c3.x) / 2, (c1.y + c3.y) / 2, -(boxRect.rotation * D2R));
+    const b1 = { x: boundingRect.x, y: boundingRect.y };
+    const b2 = { x: boundingRect.x + boundingRect.width, y: boundingRect.y };
+    const b3 = { x: boundingRect.x + boundingRect.width, y: boundingRect.y + boundingRect.height };
+    const b4 = { x: boundingRect.x, y: boundingRect.y + boundingRect.height };
+    const b0 = { x: (b1.x + b3.x) / 2, y: (b1.y + b3.y) / 2 };
+    attachPoint(c0, c1, c2, c3, c4, c1a, b0, b1, b2, b3, b4);
+    // Attach lines
+    attachLine(c1.x, c1.y, calcLineLength(boxRect.width, boxRect.height), calcLineAngle(boxRect.width, boxRect.height) + boxRect.rotation);
+    attachLine(b1.x, b1.y, calcLineLength(boundingRect.width, boundingRect.height), calcLineAngle(boundingRect.width, boundingRect.height));
+
+    // Viewport resize handler
     window.addEventListener('resize', function () {
         viewportWidth = window.innerWidth;
         viewportHeight = window.innerHeight;
     });
+}
+
+/**
+ * Get element's bounding rect data.
+ * @param {HTMLElement} element 
+ * @returns {Omit<DOMRect, "toJSON">}
+ */
+function getBoundingRect(element, rotation) {
+    const { rotation: r, ...box } = boxRect;
+    rotation = rotation ?? r;
+    /** @type {Omit<DOMRect, "toJSON">} */
+    const rect = rotation ? element.getBoundingClientRect().toJSON() : box;
+    for (const prop in rect) {
+        const value = rect[prop];
+        rect[prop] = Math.round(value);
+    }
+    return rect;
 }
 
 /**
@@ -293,17 +424,114 @@ function getPoint(x, y, cx, cy, angle) {
     };
 }
 
-function attachPoint(x, y) {
-    let point = document.querySelector('.point');
-    if (point) {
+/**
+ * Create a point in the canvas.
+ * @param  {...{ x: number, y: number }} coords 
+ * @returns {Set<{ x: number, y: number }>}
+ */
+function attachPoint(...coords) {
+    for (const { x, y } of coords) {
+        const point = document.createElement('div');
+        point.classList.add('point');
         point.style.setProperty('--x', x);
         point.style.setProperty('--y', y);
+        points.push(point);
+        document.body.append(point);
+    }
+
+    return points;
+}
+
+/**
+ * Move a point in the canvas.
+ * @param {HTMLElement} point 
+ * @param {object} coords 
+ * @param {number} coords.x 
+ * @param {number} coords.y  
+ */
+function movePoint(point, { x, y }) {
+    point.style.setProperty('--x', x);
+    point.style.setProperty('--y', y);
+}
+
+/**
+ * Attach bounding box element.
+ * @param {number} x 
+ * @param {number} y 
+ * @param {number} width 
+ * @param {number} height 
+ * @param {number} rotation
+ */
+function attachBoundingRect(x, y, width, height, rotation) {
+    let boundingRect = document.querySelector('.bounding-rect');
+    if (boundingRect) {
+        boundingRect.style.setProperty('--opacity', rotation && 1);
+        boundingRect.style.setProperty('--width', width);
+        boundingRect.style.setProperty('--height', height);
+        boundingRect.style.setProperty('--x', x);
+        boundingRect.style.setProperty('--y', y);
         return;
     }
 
-    point = document.createElement('div');
-    point.classList.add('point');
-    point.style.setProperty('--x', x);
-    point.style.setProperty('--y', y);
-    document.body.append(point);
+    boundingRect = document.createElement('div');
+    boundingRect.classList.add('bounding-rect');
+    boundingRect.style.setProperty('--width', width);
+    boundingRect.style.setProperty('--height', height);
+    boundingRect.style.setProperty('--x', x);
+    boundingRect.style.setProperty('--y', y);
+    document.body.append(boundingRect);
+}
+
+/**
+ * Create a line in the canvas.
+ * @param {number} x 
+ * @param {number} y 
+ * @param {number} width 
+ * @param {number} angle 
+ */
+function attachLine(x, y, width, angle) {
+    const line = document.createElement('div');
+    line.classList.add('line');
+    line.style.setProperty('--x', x);
+    line.style.setProperty('--y', y);
+    line.style.setProperty('--width', width);
+    line.style.setProperty('--angle', angle);
+    lines.push(line);
+    document.body.append(line);
+}
+
+/**
+ * Create a line in the canvas.
+ * @param {HTMLElement} line 
+ * @param {number} x 
+ * @param {number} y 
+ * @param {number} width 
+ * @param {number} angle 
+ */
+function adjustLine(line, x, y, width, angle) {
+    line.style.setProperty('--x', x);
+    line.style.setProperty('--y', y);
+    line.style.setProperty('--width', width);
+    line.style.setProperty('--angle', angle);
+}
+
+/**
+ * Calculate the length of a line 
+ * inside a rectangular shape.
+ * @param {number} width  
+ * @param {number} height 
+ */
+function calcLineLength(width, height) {
+    return Math.sqrt(width ** 2 / 4 + height ** 2 / 4);
+}
+
+/**
+ * Calculate angular displacement of 
+ * a line inside a rectangular shape. 
+ * @param {number} width 
+ * @param {number} height 
+ * @returns 
+ */
+function calcLineAngle(width, height) {
+    return Math.atan(height / width) * R2D;
 }
