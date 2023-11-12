@@ -137,6 +137,32 @@ body {
     pointer-events: none;
 }
 
+.bounding-rect {
+    position: absolute;
+    transform-origin: center;
+    top: calc(var(--y, 200) * 1px);
+    left: calc(var(--x, 100) * 1px);
+    z-index: 1;
+    width: calc(var(--width, 150) * 1px);
+    height: calc(var(--height, 150) * 1px);
+    border: 2px dashed rgba(0 0 0 /1);
+    opacity: var(--opacity, 0);
+    pointer-events: none;
+}
+
+.line {
+    --border-width: 1;
+    position: absolute;
+    transform-origin: top left;
+    top: calc((var(--y, calc(200 + (var(--border-width) / 2))) + (var(--border-width) / 2)) * 1px);
+    left: calc((var(--x, calc(100 + (var(--border-width) / 2))) + (var(--border-width) / 2)) * 1px);
+    transform: translate(0, -50%) rotateZ(calc(var(--angle, 45) * 1deg));
+    z-index: -1;
+    width: calc(var(--width, 75) * 1px);
+    border-top: calc(var(--border-width) * 1px) dashed rgb(0 0 0 / 1);
+    pointer-events: none;
+}
+
 .box-data {
     position: absolute;
     top: 20px;
