@@ -55,7 +55,7 @@ function setupActions() {
         center.y = (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2);
         x = event.clientX - center.x;
         y = event.clientY - center.y;
-        startAngle = R2D * Math.atan2(x, -y);
+        startAngle = R2D * Math.atan2(y, x);
         startAngle = Math.round(startAngle % 360);
         isRotating = true;
         boxElem.classList.add('active', 'rotate');
@@ -78,7 +78,7 @@ function setupActions() {
         if (!isRotating || isDragging || isResizing) return false;
         x = event.clientX - center.x;
         y = event.clientY - center.y;
-        let currentAngle = R2D * Math.atan2(x, -y);
+        let currentAngle = R2D * Math.atan2(y, x);
         deltaAngle = boxRect.rotation + (currentAngle - startAngle);
         deltaAngle = Math.round(deltaAngle % 360);
         updateBoxInfo({ rotation: deltaAngle });
