@@ -225,15 +225,22 @@ function setupActions() {
         center.y = (deltaY + window.scrollY) - window.scrollY + (boxRect.height / 2);
         updateBoxRect({ x: deltaX, y: deltaY });
         updateBoxInfo({ x: deltaX, y: deltaY });
-        // Update bounding box element
-        const boundingRect = getBoundingRect(boxElem);
-        attachBoundingRect(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height, boxRect.rotation);
-        // Update corner points
+        // Update box corner points
         const c1 = getPoint(boxRect.x, boxRect.y, center.x, center.y, boxRect.rotation * D2R);
         const c2 = getPoint(boxRect.x + boxRect.width, boxRect.y, center.x, center.y, boxRect.rotation * D2R);
         const c3 = getPoint(boxRect.x + boxRect.width, boxRect.y + boxRect.height, center.x, center.y, boxRect.rotation * D2R);
         const c4 = getPoint(boxRect.x, boxRect.y + boxRect.height, center.x, center.y, boxRect.rotation * D2R);
         const c1a = getPoint(c1.x, c1.y, (c1.x + c3.x) / 2, (c1.y + c3.y) / 2, -(boxRect.rotation * D2R));
+        if (boxRect.rotation != 0) {
+            const points = [c1,c2,c3,c4];
+            const p1 = points.find(point => Math.round(point.x) <= 0 || Math.round(point.y) <= 0);
+            const p2 = points.find(point => Math.round(point.x) >= viewportWidth || Math.round(point.y) >= viewportHeight);
+            if (p1 || p2) return true;
+        }
+        // Update bounding box element
+        const boundingRect = getBoundingRect(boxElem);
+        attachBoundingRect(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height, boxRect.rotation);
+        // Update bounding box points
         const b1 = { x: boundingRect.x, y: boundingRect.y };
         const b2 = { x: boundingRect.x + boundingRect.width, y: boundingRect.y };
         const b3 = { x: boundingRect.x + boundingRect.width, y: boundingRect.y + boundingRect.height };
