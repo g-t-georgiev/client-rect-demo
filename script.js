@@ -51,7 +51,7 @@ function setupActions() {
 
     function rotateStartHandler(event) {
         if (isRotating || isDragging || isResizing) return false;
-        center.x = boxRect.x + (boxRect.width / 2);
+        center.x = (boxRect.x + window.scrollX) - window.scrollX + (boxRect.width / 2);
         center.y = (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2);
         x = event.clientX - center.x;
         y = event.clientY - center.y;
@@ -115,7 +115,7 @@ function setupActions() {
 
     function resizeStartHandler(event) {
         if (isResizing || isDragging || isRotating) return false;
-        center.x = boxRect.x + (boxRect.width / 2);
+        center.x = (boxRect.x + window.scrollX) - window.scrollX + (boxRect.width / 2);
         center.y = (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2);
         x = event.clientX - boxRect.width;
         y = event.clientY - boxRect.height;
@@ -128,7 +128,7 @@ function setupActions() {
 
     function resizeEndHandler(event) {
         if (!isResizing || isDragging || isRotating) return false;
-        center.x = boxRect.x + (boxRect.width / 2);
+        center.x = (boxRect.x + window.scrollX) - window.scrollX + (boxRect.width / 2);
         center.y = (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2);
         x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2));
         y = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2));
@@ -151,7 +151,7 @@ function setupActions() {
         const boundingRect = getBoundingRect(boxElem);
         attachBoundingRect(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height, boxRect.rotation);
         // Update center point
-        center.x = boxRect.x + (boxRect.width / 2);
+        center.x = (boxRect.x + window.scrollX) - window.scrollX + (boxRect.width / 2);
         center.y = (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2);
         // Update corner points
         const c1 = getPoint(boxRect.x, boxRect.y, center.x, center.y, boxRect.rotation * D2R);
@@ -187,7 +187,7 @@ function setupActions() {
 
     function dragStartHandler(event) {
         if (isDragging || isResizing || isRotating) return false;
-        center.x = boxRect.x + (boxRect.width / 2);
+        center.x = (boxRect.x + window.scrollX) - window.scrollX + (boxRect.width / 2);
         center.y = (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2);
         x = event.clientX - boxRect.x;
         y = event.clientY - boxRect.y;
@@ -200,7 +200,7 @@ function setupActions() {
 
     function dragEndHandler(event) {
         if (!isDragging || isResizing || isRotating) return false;
-        center.x = boxRect.x + (boxRect.width / 2);
+        center.x = (boxRect.x + window.scrollX) - window.scrollX + (boxRect.width / 2);
         center.y = (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2);
         x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
         y = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
@@ -217,7 +217,7 @@ function setupActions() {
         let deltaY = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
         deltaX = Math.round(deltaX);
         deltaY = Math.round(deltaY);
-        center.x = deltaX + (boxRect.width / 2);
+        center.x = (deltaX + window.scrollX) - window.scrollX + (boxRect.width / 2);
         center.y = (deltaY + window.scrollY) - window.scrollY + (boxRect.height / 2);
         updateBoxRect({ x: deltaX, y: deltaY });
         updateBoxInfo({ x: deltaX, y: deltaY });
@@ -361,7 +361,7 @@ function initialize() {
     setupActions();
 
     // Define center
-    center.x = boxRect.x + (boxRect.width / 2);
+    center.x = (boxRect.x + window.scrollX) - window.scrollX + (boxRect.width / 2);
     center.y = (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2);
     // Attach bounding box
     const boundingRect = getBoundingRect(boxElem);
