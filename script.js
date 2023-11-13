@@ -55,7 +55,8 @@ function setupActions() {
         center.y = (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2);
         x = event.clientX - center.x;
         y = event.clientY - center.y;
-        startAngle = Math.round(Math.round(R2D * Math.atan2(x, -y)) % 360);
+        startAngle = Math.round(Math.round(R2D * Math.atan2(x, -y)));
+        startAngle = startAngle % 360;
         isRotating = true;
         boxElem.classList.add('active', 'rotate');
         document.body.style.setProperty('--cursor', 'grabbing');
@@ -77,8 +78,10 @@ function setupActions() {
         if (!isRotating || isDragging || isResizing) return false;
         x = event.clientX - center.x;
         y = event.clientY - center.y;
-        let currentAngle = Math.round(R2D * Math.atan2(x, -y) % 360);
+        let currentAngle = Math.round(R2D * Math.atan2(x, -y));
         deltaAngle = (boxRect.rotation + (currentAngle - startAngle)) % 360;
+        deltaAngle = deltaAngle % 360;
+        console.log(deltaAngle);
         updateBoxInfo({ rotation: deltaAngle });
         // Update bounding box
         const boundingRect = getBoundingRect(boxElem, deltaAngle);
@@ -534,4 +537,8 @@ function calcLineLength(width, height) {
  */
 function calcLineAngle(width, height) {
     return Math.atan(height / width) * R2D;
+}
+
+function findClosestAngle(from, to) {
+    return from + ((((to - from) % 360) + 540) % 360) - 180;
 }
