@@ -55,7 +55,7 @@ function setupActions() {
         center.y = (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2);
         x = event.clientX - center.x;
         y = event.clientY - center.y;
-        startAngle = Math.round(R2D * Math.atan2(y, x));
+        startAngle = Math.round(Math.round(R2D * Math.atan2(x, -y)) % 360);
         isRotating = true;
         boxElem.classList.add('active', 'rotate');
         document.body.style.setProperty('--cursor', 'grabbing');
@@ -77,7 +77,7 @@ function setupActions() {
         if (!isRotating || isDragging || isResizing) return false;
         x = event.clientX - center.x;
         y = event.clientY - center.y;
-        let currentAngle = Math.round(R2D * Math.atan2(y, x));
+        let currentAngle = Math.round(R2D * Math.atan2(x, -y) % 360);
         deltaAngle = (boxRect.rotation + (currentAngle - startAngle)) % 360;
         updateBoxInfo({ rotation: deltaAngle });
         // Update bounding box
