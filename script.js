@@ -79,7 +79,7 @@ function setupActions() {
         x = event.clientX - center.x;
         y = event.clientY - center.y;
         let currentAngle = Math.round(R2D * Math.atan2(x, -y));
-        deltaAngle = (boxRect.rotation + (currentAngle - startAngle)) % 360;
+        deltaAngle = (boxRect.rotation + (currentAngle - startAngle));
         deltaAngle = deltaAngle % 360;
         console.log(deltaAngle);
         updateBoxInfo({ rotation: deltaAngle });
