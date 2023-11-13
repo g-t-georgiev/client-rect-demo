@@ -57,6 +57,7 @@ function setupActions() {
         y = event.clientY - center.y;
         startAngle = R2D * Math.atan2(y, x);
         startAngle = Math.round(startAngle % 360);
+        startAngle = startAngle < 0 ? 360 + startAngle : startAngle;
         isRotating = true;
         boxElem.classList.add('active', 'rotate');
         document.body.style.setProperty('--cursor', 'grabbing');
@@ -81,6 +82,7 @@ function setupActions() {
         let currentAngle = R2D * Math.atan2(y, x);
         deltaAngle = boxRect.rotation + (currentAngle - startAngle);
         deltaAngle = Math.round(deltaAngle % 360);
+        deltaAngle  = deltaAngle < 0 ? 360 + deltaAngle : deltaAngle;
         updateBoxInfo({ rotation: deltaAngle });
         // Update bounding box
         const boundingRect = getBoundingRect(boxElem, deltaAngle);
