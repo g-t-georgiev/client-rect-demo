@@ -213,22 +213,28 @@ function setupActions() {
 
     function dragHandler(event) {
         if (!isDragging || isResizing || isRotating) return false;
-        // if (boxRect.rotation != 0) {
-        //     const thresholds = [points[1], points[2], points[3], points[4]];
-        //     const t1 = thresholds.find(point => Math.round(point.x) <= 0 || Math.round(point.y) <= 0);
-        //     const t2 = thresholds.find(point => Math.round(point.x) >= viewportWidth || Math.round(point.y) >= viewportHeight);
-        //     if (t1 || t2) return true;
-        // }
-        let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
-        let deltaY = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
+        let deltaX;
+        let deltaY;
+        if (boxRect.rotation != 0) {
+            const thresholds = [points[1], points[2], points[3], points[4]];
+            const minX = thresholds.find(point => Math.round(point.x) < 10);
+            const maxX = thresholds.find(point => Math.round(point.x) > viewportWidth - 10);
+            const minY = thresholds.find(point => Math.round(point.y) < 10);
+            const maxY = thresholds.find(point => Math.round(point.y) > viewportHeight - 10);
+            console.log(minX, maxX, minY, maxY);
+        } else {
+            deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
+            deltaY = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
+        }
         deltaX = Math.round(deltaX);
         deltaY = Math.round(deltaY);
+        updateBoxRect({ x: deltaX, y: deltaY });
+        updateBoxInfo({ x: deltaX, y: deltaY });
+        // Update center point
         center.update(
             (boxRect.x + window.scrollX) - window.scrollX + (boxRect.width / 2),
             (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2)
         );
-        updateBoxRect({ x: deltaX, y: deltaY });
-        updateBoxInfo({ x: deltaX, y: deltaY });
         // Update box corner points
         points[1].update(getPoint(boxRect.x, boxRect.y, center.x, center.y, boxRect.rotation * D2R));
         points[2].update(getPoint(boxRect.x + boxRect.width, boxRect.y, center.x, center.y, boxRect.rotation * D2R));
