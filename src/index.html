@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="./styles.css" />
-    <script src="./script.js" async></script>
+    <link rel="stylesheet" href="./styles/main.css" />
+    <script src="./main.js" type="module"></script>
     <title>Client Rects Demo</title>
 </head>
 <body>
@@ -16,9 +16,12 @@
         <div class="box-data-rotation"></div>
     </div>
 
-    <div class="box" data-box>
-        <div class="box-rotate-handle" data-box-rotate-handle></div>
-        <div class="box-resize-handle" data-box-resize-handle></div>
+    <div class="canvas" data-canvas>
+        <div class="box" data-box>
+            <div class="box-rotate-handle" data-box-rotate-handle></div>
+            <div class="box-resize-handle" data-box-resize-handle></div>
+        </div>
     </div>
+
 </body>
 </html>

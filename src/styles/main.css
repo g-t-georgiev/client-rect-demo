@@ -5,13 +5,131 @@
 }
 
 body {
+    margin: 0;
+}
+
+/* Box info data */
+/* ------------------------------------------------- */
+
+.box-data {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: -1;
+    font-family: Consolas, monospace;
+    font-size: 1.35rem;
+    font-weight: 500;
+    pointer-events: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+:is(
+    .box-data-x,
+    .box-data-y,
+    .box-data-width,
+    .box-data-height,
+    .box-data-rotation
+)::before {
+    text-transform: capitalize;
+    margin-right: 0.3rem;
+}
+
+.box-data-x::before {
+    content: 'x:';
+}
+
+.box-data-y::before {
+    content: 'y:';
+}
+
+.box-data-width::before {
+    content: 'w:';
+}
+
+.box-data-height::before {
+    content: 'h:';
+}
+
+.box-data-rotation::before {
+    content: 'r:';
+}
+
+:is(
+    .box-data-x,
+    .box-data-y,
+    .box-data-width,
+    .box-data-height
+)::after {
+    content: 'px';
+}
+
+.box-data-rotation::after {
+    content: '\00b0';
+}
+
+/* Canvas */
+/* ------------------------------------------------- */
+.canvas {
     position: relative;
+    overflow: hidden;
     width: 100vw;
     height: 100vh;
-    margin: 0;
-    overflow: hidden;
     font-size: 0;
     cursor: var(--cursor, default);
+}
+
+/* Canvas point */
+/* ------------------------------------------------- */
+
+.point {
+    width: 10px;
+    height: 10px;
+    position: absolute;
+    top: calc(var(--y, 0) * 1px);
+    left: calc(var(--x, 0) * 1px);
+    transform: translate(-50%, -50%);
+    transform-origin: center;
+    z-index: 1;
+    background-color: var(--color, #ff0000);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* Canvas bounding rect */
+/* ------------------------------------------------- */
+
+.bounding-rect {
+    position: absolute;
+    transform-origin: center;
+    top: calc(var(--y, 200) * 1px);
+    left: calc(var(--x, 100) * 1px);
+    z-index: 1;
+    width: calc(var(--width, 150) * 1px);
+    height: calc(var(--height, 150) * 1px);
+    border: 2px dashed rgba(0 0 0 /1);
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.bounding-rect.visible {
+    visibility: visible;
+}
+
+/* Canvas line */
+/* ------------------------------------------------- */
+
+.line {
+    --border-width: 1;
+    position: absolute;
+    transform-origin: top left;
+    top: calc((var(--y, calc(200 + (var(--border-width) / 2))) + (var(--border-width) / 2)) * 1px);
+    left: calc((var(--x, calc(100 + (var(--border-width) / 2))) + (var(--border-width) / 2)) * 1px);
+    transform: translate(0, -50%) rotateZ(calc(var(--angle, 45) * 1deg));
+    z-index: -1;
+    width: calc(var(--len, 75) * 1px);
+    border-top: calc(var(--border-width) * 1px) dashed rgb(0 0 0 / 1);
+    pointer-events: none;
 }
 
 /* Box */
@@ -121,101 +239,4 @@ body {
     -webkit-user-drag: none;
     -webkit-user-select: none;
     user-select: none;
-}
-
-.point {
-    width: 10px;
-    height: 10px;
-    position: absolute;
-    top: calc(var(--y, 0) * 1px);
-    left: calc(var(--x, 0) * 1px);
-    transform: translate(-50%, -50%);
-    transform-origin: center;
-    z-index: 1;
-    background-color: var(--color, #ff0000);
-    border-radius: 50%;
-    pointer-events: none;
-}
-
-.bounding-rect {
-    position: absolute;
-    transform-origin: center;
-    top: calc(var(--y, 200) * 1px);
-    left: calc(var(--x, 100) * 1px);
-    z-index: 1;
-    width: calc(var(--width, 150) * 1px);
-    height: calc(var(--height, 150) * 1px);
-    border: 2px dashed rgba(0 0 0 /1);
-    opacity: var(--opacity, 0);
-    pointer-events: none;
-}
-
-.line {
-    --border-width: 1;
-    position: absolute;
-    transform-origin: top left;
-    top: calc((var(--y, calc(200 + (var(--border-width) / 2))) + (var(--border-width) / 2)) * 1px);
-    left: calc((var(--x, calc(100 + (var(--border-width) / 2))) + (var(--border-width) / 2)) * 1px);
-    transform: translate(0, -50%) rotateZ(calc(var(--angle, 45) * 1deg));
-    z-index: -1;
-    width: calc(var(--width, 75) * 1px);
-    border-top: calc(var(--border-width) * 1px) dashed rgb(0 0 0 / 1);
-    pointer-events: none;
-}
-
-.box-data {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    z-index: -1;
-    font-family: Consolas, monospace;
-    font-size: 1.35rem;
-    font-weight: 500;
-    pointer-events: none;
-    -webkit-user-select: none;
-    user-select: none;
-}
-
-:is(
-    .box-data-x,
-    .box-data-y,
-    .box-data-width,
-    .box-data-height,
-    .box-data-rotation
-)::before {
-    text-transform: capitalize;
-    margin-right: 0.3rem;
-}
-
-.box-data-x::before {
-    content: 'x:';
-}
-
-.box-data-y::before {
-    content: 'y:';
-}
-
-.box-data-width::before {
-    content: 'w:';
-}
-
-.box-data-height::before {
-    content: 'h:';
-}
-
-.box-data-rotation::before {
-    content: 'r:';
-}
-
-:is(
-    .box-data-x,
-    .box-data-y,
-    .box-data-width,
-    .box-data-height
-)::after {
-    content: 'px';
-}
-
-.box-data-rotation::after {
-    content: '\00b0';
 }
