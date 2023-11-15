@@ -213,8 +213,12 @@ function setupActions() {
 
     function dragHandler(event) {
         if (!isDragging || isResizing || isRotating) return false;
-        let deltaX;
-        let deltaY;
+
+        let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
+        let deltaY = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
+        deltaX = Math.round(deltaX);
+        deltaY = Math.round(deltaY);
+
         if (boxRect.rotation != 0) {
             const thresholds = [points[1], points[2], points[3], points[4]];
             const minX = thresholds.find(point => Math.round(point.x) < 10);
@@ -222,12 +226,8 @@ function setupActions() {
             const minY = thresholds.find(point => Math.round(point.y) < 10);
             const maxY = thresholds.find(point => Math.round(point.y) > viewportHeight - 10);
             console.log(minX, maxX, minY, maxY);
-        } else {
-            deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
-            deltaY = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
         }
-        deltaX = Math.round(deltaX);
-        deltaY = Math.round(deltaY);
+
         updateBoxRect({ x: deltaX, y: deltaY });
         updateBoxInfo({ x: deltaX, y: deltaY });
         // Update center point
