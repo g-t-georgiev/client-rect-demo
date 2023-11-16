@@ -32,9 +32,25 @@ let viewportHeight = window.innerHeight;
 let isDragging = false;
 let isResizing = false;
 let isRotating = false;
+let locked = false;
+let x = 0;
+let y = 0;
+let startAngle = 0;
+let currentAngle = 0;
+let deltaAngle = 0;
 /** @type BoundingBox */
 let boundingBox;
+/** @type number */
+let rafId;
+/** @type number */
+let startTime = null
+/** @type number */
+let prevTime = null;
+/** @type number */
+let deltaTime = null;
+
 initialize();
+update(performance.now());
 
 /**
  * Equalize touch and pointer/mouse event inputs,
@@ -49,12 +65,6 @@ function normalize(handler, event) {
 }
 
 function setupActions() {
-    let locked = false;
-    let x = 0;
-    let y = 0;
-    let startAngle = 0;
-    let deltaAngle = 0;
-
     function rotateStartHandler(event) {
         if (isRotating || isDragging || isResizing) return false;
         center.update(
@@ -87,30 +97,10 @@ function setupActions() {
         if (!isRotating || isDragging || isResizing) return false;
         x = event.clientX - center.x;
         y = event.clientY - center.y;
-        let currentAngle = R2D * Math.atan2(y, x);
+        currentAngle = R2D * Math.atan2(y, x);
         deltaAngle = boxRect.rotation + (currentAngle - startAngle);
         deltaAngle = Math.round(deltaAngle % 360);
-        deltaAngle  = deltaAngle < 0 ? 360 + deltaAngle : deltaAngle;
-        updateBoxInfo({ rotation: deltaAngle });
-        // Update bounding box
-        const boundingRect = getBoundingRect(boxElem, deltaAngle);
-        boundingBox.update(boundingRect.x, boundingRect.y, 0, boundingRect.width, boundingRect.height, deltaAngle);
-        // Update corner points
-        points[1].update(getPoint(boxRect.x, boxRect.y, center.x, center.y, deltaAngle * D2R));
-        points[2].update(getPoint(boxRect.x + boxRect.width, boxRect.y, center.x, center.y, deltaAngle * D2R));
-        points[3].update(getPoint(boxRect.x + boxRect.width, boxRect.y + boxRect.height, center.x, center.y, deltaAngle * D2R));
-        points[4].update(getPoint(boxRect.x, boxRect.y + boxRect.height, center.x, center.y, deltaAngle * D2R));
-        points[5].update(getPoint(points[1].x, points[1].y, (points[1].x + points[3].x) / 2, (points[1].y + points[3].y) / 2, -(deltaAngle * D2R)));
-        points[7].update({ x: boundingRect.x, y: boundingRect.y });
-        points[8].update({ x: boundingRect.x + boundingRect.width, y: boundingRect.y });
-        points[9].update({ x: boundingRect.x + boundingRect.width, y: boundingRect.y + boundingRect.height });
-        points[10].update({ x: boundingRect.x, y: boundingRect.y + boundingRect.height });
-        points[6].update({ x: (points[7].x + points[9].x) / 2, y: (points[7].y + points[9].y) / 2 });
-        // Update diagonal lines
-        lines[0].update(points[1].x, points[1].y, 0, calcLineLength(boxRect.width, boxRect.height), calcLineAngle(boxRect.width, boxRect.height) + deltaAngle);
-        lines[1].update(points[7].x, points[7].y, 0, calcLineLength(boundingRect.width, boundingRect.height), calcLineAngle(boundingRect.width, boundingRect.height));
-        // Update UI
-        boxElem.style.setProperty('--rotation', deltaAngle);
+        deltaAngle = deltaAngle < 0 ? 360 + deltaAngle : deltaAngle;
         return true;
     }
 
@@ -131,10 +121,6 @@ function setupActions() {
 
     function resizeEndHandler(event) {
         if (!isResizing || isDragging || isRotating) return false;
-        center.update(
-            (boxRect.x + window.scrollX) - window.scrollX + (boxRect.width / 2),
-            (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2)
-        );
         x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2));
         y = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2));
         isResizing = false;
@@ -151,33 +137,6 @@ function setupActions() {
         deltaX = Math.round(deltaX);
         deltaY = Math.round(deltaY);
         updateBoxRect({ width: deltaX, height: deltaY });
-        updateBoxInfo({ width: deltaX, height: deltaY });
-        // Update bounding box element
-        const boundingRect = getBoundingRect(boxElem);
-        boundingBox.update(boundingRect.x, boundingRect.y, 0, boundingRect.width, boundingRect.height, boxRect.rotation);
-        // Update center point
-        center.update(
-            (boxRect.x + window.scrollX) - window.scrollX + (boxRect.width / 2),
-            (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2)
-        );
-        // Update corner points
-        points[1].update(getPoint(boxRect.x, boxRect.y, center.x, center.y, boxRect.rotation * D2R));
-        points[2].update(getPoint(boxRect.x + boxRect.width, boxRect.y, center.x, center.y, boxRect.rotation * D2R));
-        points[3].update(getPoint(boxRect.x + boxRect.width, boxRect.y + boxRect.height, center.x, center.y, boxRect.rotation * D2R));
-        points[4].update(getPoint(boxRect.x, boxRect.y + boxRect.height, center.x, center.y, boxRect.rotation * D2R));
-        points[5].update(getPoint(points[1].x, points[1].y, (points[1].x + points[3].x) / 2, (points[1].y + points[3].y) / 2, -(boxRect.rotation * D2R)));
-        points[7].update(boundingRect.x, boundingRect.y);
-        points[8].update(boundingRect.x + boundingRect.width, boundingRect.y);
-        points[9].update(boundingRect.x + boundingRect.width, boundingRect.y + boundingRect.height);
-        points[10].update(boundingRect.x, boundingRect.y + boundingRect.height);
-        points[6].update((points[7].x + points[9].x) / 2, (points[7].y + points[9].y) / 2);
-        // TODO: Correct top left corner position
-        // Update diagonal lines
-        lines[0].update(points[1].x, points[1].y, 0, calcLineLength(boxRect.width, boxRect.height), calcLineAngle(boxRect.width, boxRect.height) + boxRect.rotation);
-        lines[1].update(points[7].x, points[7].y, 0, calcLineLength(boundingRect.width, boundingRect.height), calcLineAngle(boundingRect.width, boundingRect.height));
-        // Update UI
-        boxElem.style.setProperty('--width', deltaX);
-        boxElem.style.setProperty('--height', deltaY);
         return true;
     }
 
@@ -198,10 +157,6 @@ function setupActions() {
 
     function dragEndHandler(event) {
         if (!isDragging || isResizing || isRotating) return false;
-        center.update(
-            (boxRect.x + window.scrollX) - window.scrollX + (boxRect.width / 2),
-            (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2)
-        );
         x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
         y = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
         isDragging = false;
@@ -229,33 +184,6 @@ function setupActions() {
         }
 
         updateBoxRect({ x: deltaX, y: deltaY });
-        updateBoxInfo({ x: deltaX, y: deltaY });
-        // Update center point
-        center.update(
-            (boxRect.x + window.scrollX) - window.scrollX + (boxRect.width / 2),
-            (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2)
-        );
-        // Update box corner points
-        points[1].update(getPoint(boxRect.x, boxRect.y, center.x, center.y, boxRect.rotation * D2R));
-        points[2].update(getPoint(boxRect.x + boxRect.width, boxRect.y, center.x, center.y, boxRect.rotation * D2R));
-        points[3].update(getPoint(boxRect.x + boxRect.width, boxRect.y + boxRect.height, center.x, center.y, boxRect.rotation * D2R));
-        points[4].update(getPoint(boxRect.x, boxRect.y + boxRect.height, center.x, center.y, boxRect.rotation * D2R));
-        points[5].update(getPoint(points[1].x, points[1].y, (points[1].x + points[3].x) / 2, (points[1].y + points[3].y) / 2, -(boxRect.rotation * D2R)));
-        // Update bounding box element
-        const boundingRect = getBoundingRect(boxElem);
-        boundingBox.update(boundingRect.x, boundingRect.y, 0, boundingRect.width, boundingRect.height, boxRect.rotation);
-        // Update bounding box points
-        points[7].update(boundingRect.x, boundingRect.y);
-        points[8].update(boundingRect.x + boundingRect.width, boundingRect.y);
-        points[9].update(boundingRect.x + boundingRect.width, boundingRect.y + boundingRect.height);
-        points[10].update(boundingRect.x, boundingRect.y + boundingRect.height);
-        points[6].update((points[7].x + points[9].x) / 2, (points[7].y + points[9].y) / 2);
-        // Update diagonal lines
-        lines[0].update(points[1].x, points[1].y, 0, calcLineLength(boxRect.width, boxRect.height), calcLineAngle(boxRect.width, boxRect.height) + boxRect.rotation);
-        lines[1].update(points[7].x, points[7].y, 0, calcLineLength(boundingRect.width, boundingRect.height), calcLineAngle(boundingRect.width, boundingRect.height));
-        // Update UI
-        boxElem.style.setProperty('--x', deltaX);
-        boxElem.style.setProperty('--y', deltaY);
         return true;
     }
 
@@ -449,4 +377,70 @@ function calcLineLength(width, height) {
  */
 function calcLineAngle(width, height) {
     return Math.atan(height / width) * R2D;
+}
+
+function updateVisualMarkers() {
+    // Update center point
+    center.update(
+        (boxRect.x + window.scrollX) - window.scrollX + (boxRect.width / 2),
+        (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2)
+    );
+    // Update bounding box
+    const boundingRect = getBoundingRect(boxElem, deltaAngle);
+    boundingBox.update(boundingRect.x, boundingRect.y, 0, boundingRect.width, boundingRect.height, deltaAngle);
+    // Update corner points
+    points[1].update(getPoint(boxRect.x, boxRect.y, center.x, center.y, deltaAngle * D2R));
+    points[2].update(getPoint(boxRect.x + boxRect.width, boxRect.y, center.x, center.y, deltaAngle * D2R));
+    points[3].update(getPoint(boxRect.x + boxRect.width, boxRect.y + boxRect.height, center.x, center.y, deltaAngle * D2R));
+    points[4].update(getPoint(boxRect.x, boxRect.y + boxRect.height, center.x, center.y, deltaAngle * D2R));
+    points[5].update(getPoint(points[1].x, points[1].y, (points[1].x + points[3].x) / 2, (points[1].y + points[3].y) / 2, -(deltaAngle * D2R)));
+    points[7].update({ x: boundingRect.x, y: boundingRect.y });
+    points[8].update({ x: boundingRect.x + boundingRect.width, y: boundingRect.y });
+    points[9].update({ x: boundingRect.x + boundingRect.width, y: boundingRect.y + boundingRect.height });
+    points[10].update({ x: boundingRect.x, y: boundingRect.y + boundingRect.height });
+    points[6].update({ x: (points[7].x + points[9].x) / 2, y: (points[7].y + points[9].y) / 2 });
+    // Update diagonal lines
+    lines[0].update(points[1].x, points[1].y, 0, calcLineLength(boxRect.width, boxRect.height), calcLineAngle(boxRect.width, boxRect.height) + deltaAngle);
+    lines[1].update(points[7].x, points[7].y, 0, calcLineLength(boundingRect.width, boundingRect.height), calcLineAngle(boundingRect.width, boundingRect.height));
+}
+
+/**
+ * Update loop.
+ * @param {number} timestamp 
+ */
+function update(timestamp) {
+    if (startTime == null) {
+        startTime = timestamp;
+        prevTime = startTime;
+        rafId = window.requestAnimationFrame(update);
+        return rafId;
+    }
+
+    deltaTime = timestamp - prevTime;
+    prevTime = timestamp;
+
+    if (isDragging) {
+        console.log('Dragging', isDragging);
+        updateBoxInfo({ x: boxRect.x, y: boxRect.y });
+        boxElem.style.setProperty('--x', boxRect.x);
+        boxElem.style.setProperty('--y', boxRect.y);
+        updateVisualMarkers();
+    }
+
+    if (isResizing) {
+        console.log('Resizing', isResizing);
+        updateBoxInfo({ width: boxRect.width, height: boxRect.height });
+        boxElem.style.setProperty('--width', boxRect.width);
+        boxElem.style.setProperty('--height', boxRect.height);
+        updateVisualMarkers();
+    }
+
+    if (isRotating) {
+        console.log('Rotating', isRotating);
+        updateBoxInfo({ rotation: deltaAngle });
+        boxElem.style.setProperty('--rotation', deltaAngle);
+        updateVisualMarkers();
+    }
+
+    rafId = window.requestAnimationFrame(update);
 }
