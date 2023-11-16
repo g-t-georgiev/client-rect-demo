@@ -71,9 +71,9 @@ function setupActions() {
             (boxRect.x + window.scrollX) - window.scrollX + (boxRect.width / 2),
             (boxRect.y + window.scrollY) - window.scrollY + (boxRect.height / 2)
         );
-        x = event.clientX - center.x;
-        y = event.clientY - center.y;
-        startAngle = R2D * Math.atan2(y, x);
+        let dx = event.clientX - center.x;
+        let dy = event.clientY - center.y;
+        startAngle = R2D * Math.atan2(dy, dx);
         startAngle = Math.round(startAngle % 360);
         startAngle = startAngle < 0 ? 360 + startAngle : startAngle;
         isRotating = true;
@@ -95,9 +95,9 @@ function setupActions() {
 
     function rotateHandler(event) {
         if (!isRotating || isDragging || isResizing) return false;
-        x = event.clientX - center.x;
-        y = event.clientY - center.y;
-        currentAngle = R2D * Math.atan2(y, x);
+        let dx = event.clientX - center.x;
+        let dy = event.clientY - center.y;
+        currentAngle = R2D * Math.atan2(dy, dx);
         deltaAngle = boxRect.rotation + (currentAngle - startAngle);
         deltaAngle = Math.round(deltaAngle % 360);
         deltaAngle = deltaAngle < 0 ? 360 + deltaAngle : deltaAngle;
@@ -132,11 +132,9 @@ function setupActions() {
 
     function resizeHandler(event) {
         if (!isResizing || isDragging || isRotating) return false;
-        let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2));
-        let deltaY = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2));
-        deltaX = Math.round(deltaX);
-        deltaY = Math.round(deltaY);
-        updateBoxRect({ width: deltaX, height: deltaY });
+        let dx = Math.round(Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2)));
+        let dy = Math.round(Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2)));
+        updateBoxRect({ width: dx, height: dy });
         return true;
     }
 
@@ -168,22 +166,9 @@ function setupActions() {
 
     function dragHandler(event) {
         if (!isDragging || isResizing || isRotating) return false;
-
-        let deltaX = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
-        let deltaY = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
-        deltaX = Math.round(deltaX);
-        deltaY = Math.round(deltaY);
-
-        if (boxRect.rotation != 0) {
-            const thresholds = [points[1], points[2], points[3], points[4]];
-            const minX = thresholds.find(point => Math.round(point.x) < 10);
-            const maxX = thresholds.find(point => Math.round(point.x) > viewportWidth - 10);
-            const minY = thresholds.find(point => Math.round(point.y) < 10);
-            const maxY = thresholds.find(point => Math.round(point.y) > viewportHeight - 10);
-            console.log(minX, maxX, minY, maxY);
-        }
-
-        updateBoxRect({ x: deltaX, y: deltaY });
+        let dx = Math.round(Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2)));
+        let dy = Math.round(Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2)));
+        updateBoxRect({ x: dx, y: dy });
         return true;
     }
 
