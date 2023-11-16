@@ -50,7 +50,7 @@ let prevTime = null;
 let deltaTime = null;
 
 initialize();
-update(performance.now());
+updateUI(performance.now());
 
 /**
  * Equalize touch and pointer/mouse event inputs,
@@ -379,7 +379,7 @@ function calcLineAngle(width, height) {
     return Math.atan(height / width) * R2D;
 }
 
-function updateVisualMarkers() {
+function updateVisualMarkersUI() {
     // Update center point
     center.update(
         (boxRect.x + window.scrollX) - window.scrollX + (boxRect.width / 2),
@@ -408,11 +408,11 @@ function updateVisualMarkers() {
  * Update loop.
  * @param {number} timestamp 
  */
-function update(timestamp) {
+function updateUI(timestamp) {
     if (startTime == null) {
         startTime = timestamp;
         prevTime = startTime;
-        rafId = window.requestAnimationFrame(update);
+        rafId = window.requestAnimationFrame(updateUI);
         return rafId;
     }
 
@@ -424,7 +424,7 @@ function update(timestamp) {
         updateBoxInfo({ x: boxRect.x, y: boxRect.y });
         boxElem.style.setProperty('--x', boxRect.x);
         boxElem.style.setProperty('--y', boxRect.y);
-        updateVisualMarkers();
+        updateVisualMarkersUI();
     }
 
     if (isResizing) {
@@ -432,15 +432,15 @@ function update(timestamp) {
         updateBoxInfo({ width: boxRect.width, height: boxRect.height });
         boxElem.style.setProperty('--width', boxRect.width);
         boxElem.style.setProperty('--height', boxRect.height);
-        updateVisualMarkers();
+        updateVisualMarkersUI();
     }
 
     if (isRotating) {
         console.log('Rotating', isRotating);
         updateBoxInfo({ rotation: deltaAngle });
         boxElem.style.setProperty('--rotation', deltaAngle);
-        updateVisualMarkers();
+        updateVisualMarkersUI();
     }
 
-    rafId = window.requestAnimationFrame(update);
+    rafId = window.requestAnimationFrame(updateUI);
 }
