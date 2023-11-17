@@ -166,8 +166,19 @@ function setupActions() {
 
     function dragHandler(event) {
         if (!isDragging || isResizing || isRotating) return false;
-        let dx = Math.round(Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2)));
-        let dy = Math.round(Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2)));
+        let dx = event.clientX - x;
+        let dy = event.clientY - y;
+
+        // if (boxRect.rotation !== 0) {
+        //     // Recalculate (min..max) interval of [dx,dy] variables when object is rotated
+        //     dx = Math.round(Math.min(Math.max(dx, boundingBox.x - dx), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2)));
+        //     dy = Math.round(Math.min(Math.max(dy, boundingBox.y - dy), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2)));
+        //     updateBoxRect({ x: dx, y: dy });
+        //     return true;
+        // }
+
+        dx = Math.round(Math.min(Math.max(dx, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2)));
+        dy = Math.round(Math.min(Math.max(dy, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2)));
         updateBoxRect({ x: dx, y: dy });
         return true;
     }
