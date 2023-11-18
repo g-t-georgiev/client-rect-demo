@@ -155,8 +155,12 @@ function setupActions() {
 
     function dragEndHandler(event) {
         if (!isDragging || isResizing || isRotating) return false;
-        x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2));
-        y = Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2));
+        x = boxRect.rotation !== 0
+            ? Math.round(Math.min(Math.max(event.clientX - x, Math.abs(points[7].x - points[5].x) + 5), viewportWidth - Math.abs(points[8].x - points[5].x) - 5)) 
+            : Math.round(Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2)));
+        y = boxRect.rotation !== 0 
+            ? Math.round(Math.min(Math.max(event.clientY - y, Math.abs(points[7].y - points[5].y) + 5), viewportHeight - Math.abs(points[10].y - points[5].y) - 5)) 
+            : Math.round(Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2)));
         isDragging = false;
         boxElem.classList.remove('active', 'move');
         document.body.style.removeProperty('--cursor');
@@ -168,17 +172,12 @@ function setupActions() {
         if (!isDragging || isResizing || isRotating) return false;
         let dx = event.clientX - x;
         let dy = event.clientY - y;
-
-        // if (boxRect.rotation !== 0) {
-        //     // Recalculate (min..max) interval of [dx,dy] variables when object is rotated
-        //     dx = Math.round(Math.min(Math.max(dx, boundingBox.x - dx), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2)));
-        //     dy = Math.round(Math.min(Math.max(dy, boundingBox.y - dy), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2)));
-        //     updateBoxRect({ x: dx, y: dy });
-        //     return true;
-        // }
-
-        dx = Math.round(Math.min(Math.max(dx, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2)));
-        dy = Math.round(Math.min(Math.max(dy, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2)));
+        dx = boxRect.rotation !== 0
+            ? Math.round(Math.min(Math.max(dx, Math.abs(points[7].x - points[5].x) + 5), viewportWidth - Math.abs(points[8].x - points[5].x) - 5)) 
+            : Math.round(Math.min(Math.max(dx, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2)));
+        dy = boxRect.rotation !== 0 
+            ? Math.round(Math.min(Math.max(dy, Math.abs(points[7].y - points[5].y) + 5), viewportHeight - Math.abs(points[10].y - points[5].y) - 5)) 
+            : Math.round(Math.min(Math.max(dy, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2)));
         updateBoxRect({ x: dx, y: dy });
         return true;
     }
