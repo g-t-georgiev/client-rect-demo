@@ -125,10 +125,10 @@ function setupActions() {
     function resizeEndHandler(event) {
         if (!isResizing || isDragging || isRotating) return false;
         x = boxRect.rotation !== 0 
-            ? Math.round(Math.min(Math.max(event.clientX - x, 0), viewportWidth - boundingBox.x)) 
+            ? Math.round(Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - Math.abs(points[5].x - points[7].x) - (POINT_WIDTH / 2))) 
             : Math.round(Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2)));
         y = boxRect.rotation !== 0 
-            ? Math.round(Math.min(Math.max(event.clientY - y, 0), viewportHeight - boundingBox.y))
+            ? Math.round(Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - Math.abs(points[5].y - points[7].y) - (POINT_HEIGHT / 2)))
             : Math.round(Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2)));
         isResizing = false;
         boxElem.classList.remove('active', 'resize');
@@ -140,10 +140,10 @@ function setupActions() {
     function resizeHandler(event) {
         if (!isResizing || isDragging || isRotating) return false;
         let dx = boxRect.rotation !== 0 
-            ? Math.round(Math.min(Math.max(event.clientX - x, 0), viewportWidth - boundingBox.x)) 
+            ? Math.round(Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - Math.abs(points[5].x - points[7].x) - (POINT_WIDTH / 2))) 
             : Math.round(Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2)));
         let dy = boxRect.rotation !== 0 
-            ? Math.round(Math.min(Math.max(event.clientY - y, 0), viewportHeight - boundingBox.y))
+            ? Math.round(Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - Math.abs(points[5].y - points[7].y) - (POINT_HEIGHT / 2)))
             : Math.round(Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2)));
         updateBoxRect({ width: dx, height: dy });
         return true;
