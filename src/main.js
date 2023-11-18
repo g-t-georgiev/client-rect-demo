@@ -6,6 +6,9 @@ const RESIZE_HANDLE_WIDTH = 17;
 const ROTATE_HANLE_WIDTH = 12;
 const ROTATE_HANLE_HEIGHT = 13;
 
+const POINT_WIDTH = 10;
+const POINT_HEIGHT = 10;
+
 const R2D = 180 / Math.PI;
 const D2R = Math.PI / 180;
 
@@ -121,8 +124,12 @@ function setupActions() {
 
     function resizeEndHandler(event) {
         if (!isResizing || isDragging || isRotating) return false;
-        x = Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2));
-        y = Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2));
+        x = boxRect.rotation !== 0 
+            ? Math.round(Math.min(Math.max(event.clientX - x, 0), viewportWidth - boundingBox.x)) 
+            : Math.round(Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2)));
+        y = boxRect.rotation !== 0 
+            ? Math.round(Math.min(Math.max(event.clientY - y, 0), viewportHeight - boundingBox.y))
+            : Math.round(Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2)));
         isResizing = false;
         boxElem.classList.remove('active', 'resize');
         document.body.style.removeProperty('--cursor');
@@ -132,8 +139,12 @@ function setupActions() {
 
     function resizeHandler(event) {
         if (!isResizing || isDragging || isRotating) return false;
-        let dx = Math.round(Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2)));
-        let dy = Math.round(Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2)));
+        let dx = boxRect.rotation !== 0 
+            ? Math.round(Math.min(Math.max(event.clientX - x, 0), viewportWidth - boundingBox.x)) 
+            : Math.round(Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - (RESIZE_HANDLE_WIDTH / 2)));
+        let dy = boxRect.rotation !== 0 
+            ? Math.round(Math.min(Math.max(event.clientY - y, 0), viewportHeight - boundingBox.y))
+            : Math.round(Math.min(Math.max(event.clientY - y, 0), viewportHeight - boxRect.y - (RESIZE_HANDLE_WIDTH / 2)));
         updateBoxRect({ width: dx, height: dy });
         return true;
     }
@@ -170,14 +181,12 @@ function setupActions() {
 
     function dragHandler(event) {
         if (!isDragging || isResizing || isRotating) return false;
-        let dx = event.clientX - x;
-        let dy = event.clientY - y;
-        dx = boxRect.rotation !== 0
-            ? Math.round(Math.min(Math.max(dx, Math.abs(points[7].x - points[5].x) + 5), viewportWidth - Math.abs(points[8].x - points[5].x) - 5)) 
-            : Math.round(Math.min(Math.max(dx, 0), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2)));
-        dy = boxRect.rotation !== 0 
-            ? Math.round(Math.min(Math.max(dy, Math.abs(points[7].y - points[5].y) + 5), viewportHeight - Math.abs(points[10].y - points[5].y) - 5)) 
-            : Math.round(Math.min(Math.max(dy, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2)));
+        let dx = boxRect.rotation !== 0
+            ? Math.round(Math.min(Math.max(event.clientX - x, Math.abs(points[7].x - points[5].x) + (POINT_WIDTH / 2)), viewportWidth - Math.abs(points[8].x - points[5].x) - (POINT_WIDTH / 2))) 
+            : Math.round(Math.min(Math.max(event.clientX - x, POINT_WIDTH / 2), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2)));
+        let dy = boxRect.rotation !== 0 
+            ? Math.round(Math.min(Math.max(event.clientY - y, Math.abs(points[7].y - points[5].y) + (POINT_HEIGHT / 2)), viewportHeight - Math.abs(points[10].y - points[5].y) - (POINT_HEIGHT / 2))) 
+            : Math.round(Math.min(Math.max(event.clientY - y, ROTATE_HANLE_WIDTH + ROTATE_HANLE_HEIGHT), viewportHeight - boxRect.height - (RESIZE_HANDLE_WIDTH / 2)));
         updateBoxRect({ x: dx, y: dy });
         return true;
     }
