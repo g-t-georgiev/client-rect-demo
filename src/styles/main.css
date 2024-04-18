@@ -151,6 +151,7 @@ body {
     transform-origin: center;
     transform: rotateZ(calc(var(--rotation) * 1deg));
     cursor: var(--cursor, move);
+    touch-action: none;
 }
 
 /* Box resize handle */
@@ -170,6 +171,7 @@ body {
     -webkit-user-drag: none;
     -webkit-user-select: none;
     user-select: none;
+    touch-action: none;
 }
 
 .box-resize-handle::before {
@@ -207,6 +209,7 @@ body {
     -webkit-user-drag: none;
     -webkit-user-select: none;
     user-select: none;
+    touch-action: none;
 }
 
 .box-rotate-handle::before {
