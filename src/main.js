@@ -248,6 +248,10 @@ function setupActions() {
         }
     }
 
+    boxElem.addEventListener('dragstart', () => false);
+    boxElem.addEventListener('dragover', () => false);
+    boxElem.addEventListener('dragend', () => false);
+    
     boxElem.addEventListener('mousedown', normalize.bind(boxElem, pointerdownHandler));
     boxElem.addEventListener('touchstart', normalize.bind(boxElem, pointerdownHandler), { passive: false });
     document.addEventListener('mouseup', normalize.bind(boxElem, pointerupHandler));
