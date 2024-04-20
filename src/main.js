@@ -139,7 +139,6 @@ function setupActions() {
 
     function resizeHandler(event) {
         if (!isResizing || isDragging || isRotating) return false;
-        // TODO: Fix max resize bug when p5 is outside bounding box 
         // TODO: Set origin resize from top left corner 
         let dx = boxRect.rotation !== 0 
             ? Math.round(Math.min(Math.max(event.clientX - x, 0), viewportWidth - boxRect.x - Math.abs(points[5].x - points[7].x) - (POINT_WIDTH / 2))) 
@@ -437,7 +436,7 @@ function updateUI(timestamp) {
     prevTime = timestamp;
 
     if (isDragging) {
-        console.log('Dragging', isDragging);
+        // console.log('Dragging', isDragging);
         updateBoxInfo({ x: boxRect.x, y: boxRect.y });
         boxElem.style.setProperty('--x', boxRect.x);
         boxElem.style.setProperty('--y', boxRect.y);
@@ -445,7 +444,7 @@ function updateUI(timestamp) {
     }
 
     if (isResizing) {
-        console.log('Resizing', isResizing);
+        // console.log('Resizing', isResizing);
         updateBoxInfo({ width: boxRect.width, height: boxRect.height });
         boxElem.style.setProperty('--width', boxRect.width);
         boxElem.style.setProperty('--height', boxRect.height);
@@ -453,7 +452,7 @@ function updateUI(timestamp) {
     }
 
     if (isRotating) {
-        console.log('Rotating', isRotating);
+        // console.log('Rotating', isRotating);
         updateBoxInfo({ rotation: deltaAngle });
         boxElem.style.setProperty('--rotation', deltaAngle);
         updateVisualMarkersUI();
