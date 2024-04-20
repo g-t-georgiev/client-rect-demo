@@ -219,6 +219,7 @@ function setupActions() {
     function pointerupHandler(event) {
         event.preventDefault();
         console.log('boxElem pointerup', this);
+        
         if (!isDragging && !isResizing && !isRotating) return false;
 
         // Drag end
@@ -243,6 +244,7 @@ function setupActions() {
     function pointermoveHandler(event) {
         event.preventDefault();
         console.log('boxElem pointermove', this);
+        
         if (!isDragging && !isResizing && !isRotating) return false;
 
         // Dragging..
@@ -266,17 +268,6 @@ function setupActions() {
     boxElem.addEventListener('dragend', () => false);
 
     boxElem.addEventListener('pointerdown', pointerdownHandler);
-    // boxElem.addEventListener('mousedown', normalize.bind(boxElem, pointerdownHandler));
-    // boxElem.addEventListener('touchstart', normalize.bind(boxElem, pointerdownHandler), { passive: false });
-    // document.addEventListener('mouseup', normalize.bind(boxElem, pointerupHandler));
-    // document.addEventListener('touchend', normalize.bind(boxElem, pointerupHandler), { passive: false });
-    // document.addEventListener('touchcancel', normalize.bind(boxElem, pointerupHandler), { passive: false });
-    // document.addEventListener('mousemove', normalize.bind(boxElem, pointermoveHandler));
-    // document.addEventListener('touchmove', normalize.bind(boxElem, pointermoveHandler), { passive: false });
-
-    document.addEventListener('pointermove', () => {
-        console.log('DOCUMENT pointermove', this);
-    });
 }
 
 /**
