@@ -218,7 +218,9 @@ function setupActions() {
 
     function pointerupHandler(event) {
         event.preventDefault();
-        console.log('boxElem pointerup', this);
+
+        boxElem.removeEventListener('pointermove', pointermoveHandler);
+        boxElem.removeEventListener('pointerup', pointerupHandler);
         
         if (!isDragging && !isResizing && !isRotating) return false;
 
@@ -236,9 +238,6 @@ function setupActions() {
         if (locked && isRotating) {
             return rotateEndHandler.call(rotateHandleElem, event);
         }
-
-        boxElem.removeEventListener('pointermove', pointermoveHandler);
-        boxElem.removeEventListener('pointerup', pointerupHandler);
     }
 
     function pointermoveHandler(event) {
