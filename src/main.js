@@ -183,6 +183,7 @@ function setupActions() {
 
     function dragHandler(event) {
         if (!isDragging || isResizing || isRotating) return false;
+        // TODO: Fix dragging contstraints when p5 is outside box bounding rectangle
         let dx = boxRect.rotation !== 0
             ? Math.round(Math.min(Math.max(event.clientX - x, Math.abs(points[7].x - points[5].x) + (POINT_WIDTH / 2)), viewportWidth - Math.abs(points[8].x - points[5].x) - (POINT_WIDTH / 2))) 
             : Math.round(Math.min(Math.max(event.clientX - x, POINT_WIDTH / 2), viewportWidth - boxRect.width - (RESIZE_HANDLE_WIDTH / 2)));
