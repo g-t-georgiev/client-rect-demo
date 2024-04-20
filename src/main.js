@@ -273,6 +273,14 @@ function setupActions() {
     // document.addEventListener('touchcancel', normalize.bind(boxElem, pointerupHandler), { passive: false });
     // document.addEventListener('mousemove', normalize.bind(boxElem, pointermoveHandler));
     // document.addEventListener('touchmove', normalize.bind(boxElem, pointermoveHandler), { passive: false });
+
+    document.addEventListener('mousemove', () => {
+        console.log('DOCUMENT Mouse_Move Event');
+    });
+
+    document.addEventListener('pointermove', () => {
+        console.log('DOCUMENT Pointer_Move Event');
+    });
 }
 
 /**
