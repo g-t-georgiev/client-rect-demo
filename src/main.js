@@ -194,6 +194,12 @@ function setupActions() {
     }
 
     function pointerdownHandler(event) {
+        event.preventDefault();
+        
+        boxElem.setPointerCapture(event.pointerId);
+        boxElem.addEventListener('pointerup', pointerupHandler);
+        boxElem.addEventListener('pointermove', pointermoveHandler);
+        
         // Drag start
         if (!locked && event.target == boxElem) {
             return dragStartHandler.call(boxElem, event);
@@ -211,6 +217,8 @@ function setupActions() {
     }
 
     function pointerupHandler(event) {
+        event.preventDefault();
+        
         if (!isDragging && !isResizing && !isRotating) return false;
 
         // Drag end
@@ -227,9 +235,14 @@ function setupActions() {
         if (locked && isRotating) {
             return rotateEndHandler.call(rotateHandleElem, event);
         }
+
+        boxElem.removeEventListener('pointermove', pointermoveHandler);
+        boxElem.removeEventListener('pointerup', pointerupHandler);
     }
 
     function pointermoveHandler(event) {
+        event.preventDefault();
+        
         if (!isDragging && !isResizing && !isRotating) return false;
 
         // Dragging..
@@ -251,14 +264,15 @@ function setupActions() {
     boxElem.addEventListener('dragstart', () => false);
     boxElem.addEventListener('dragover', () => false);
     boxElem.addEventListener('dragend', () => false);
-    
-    boxElem.addEventListener('mousedown', normalize.bind(boxElem, pointerdownHandler));
-    boxElem.addEventListener('touchstart', normalize.bind(boxElem, pointerdownHandler), { passive: false });
-    document.addEventListener('mouseup', normalize.bind(boxElem, pointerupHandler));
-    document.addEventListener('touchend', normalize.bind(boxElem, pointerupHandler), { passive: false });
-    document.addEventListener('touchcancel', normalize.bind(boxElem, pointerupHandler), { passive: false });
-    document.addEventListener('mousemove', normalize.bind(boxElem, pointermoveHandler));
-    document.addEventListener('touchmove', normalize.bind(boxElem, pointermoveHandler), { passive: false });
+
+    boxElem.addEventListener('pointerdown', normalize.bind(boxElem, pointerdownHandler));
+    // boxElem.addEventListener('mousedown', normalize.bind(boxElem, pointerdownHandler));
+    // boxElem.addEventListener('touchstart', normalize.bind(boxElem, pointerdownHandler), { passive: false });
+    // document.addEventListener('mouseup', normalize.bind(boxElem, pointerupHandler));
+    // document.addEventListener('touchend', normalize.bind(boxElem, pointerupHandler), { passive: false });
+    // document.addEventListener('touchcancel', normalize.bind(boxElem, pointerupHandler), { passive: false });
+    // document.addEventListener('mousemove', normalize.bind(boxElem, pointermoveHandler));
+    // document.addEventListener('touchmove', normalize.bind(boxElem, pointermoveHandler), { passive: false });
 }
 
 /**
