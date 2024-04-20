@@ -242,7 +242,6 @@ function setupActions() {
 
     function pointermoveHandler(event) {
         event.preventDefault();
-        console.log('boxElem pointermove', this);
         
         if (!isDragging && !isResizing && !isRotating) return false;
 
